@@ -5,9 +5,9 @@ namespace Application.Interfaces;
 public interface IExpenseRepository
 {
     Task<IEnumerable<Expense>> GetAllExpenses();
-    Task<Expense?> GetExpenseById(int id);
+    Task<Expense?> GetExpenseById(Guid id);
     Task AddExpense(Expense expense);
     Task UpdateExpense(Expense expense);
-    Task DeleteExpense(int id);
+    Task DeleteExpense(Guid id);
 }
 

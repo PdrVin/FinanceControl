@@ -14,7 +14,7 @@ public class ExpenseRepository(FinanceDbContext context) : IExpenseRepository
         return await _context.Expenses.ToListAsync();
     }
 
-    public async Task<Expense?> GetExpenseById(int id)
+    public async Task<Expense?> GetExpenseById(Guid id)
     {
         return await _context.Expenses.FindAsync(id);
     }
@@ -31,7 +31,7 @@ public class ExpenseRepository(FinanceDbContext context) : IExpenseRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteExpense(int id)
+    public async Task DeleteExpense(Guid id)
     {
         var expense = await _context.Expenses.FindAsync(id);
         if (expense != null)

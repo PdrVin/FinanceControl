@@ -23,7 +23,7 @@ public class ExpenseController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<IActionResult> GetById(Guid id)
     {
         var expense = await _expenseRepository.GetExpenseById(id);
         if (expense == null) return NotFound();
@@ -38,7 +38,7 @@ public class ExpenseController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] Expense expense)
+    public async Task<IActionResult> Update(Guid id, [FromBody] Expense expense)
     {
         if (id != expense.Id) return BadRequest();
         await _expenseRepository.UpdateExpense(expense);
@@ -46,7 +46,7 @@ public class ExpenseController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(Guid id)
     {
         await _expenseRepository.DeleteExpense(id);
         return NoContent();
