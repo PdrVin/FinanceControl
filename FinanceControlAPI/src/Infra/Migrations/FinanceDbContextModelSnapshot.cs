@@ -19,9 +19,9 @@ namespace Infra.Migrations
 
             modelBuilder.Entity("Domain.Entities.Expense", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("Account")
                         .HasColumnType("INTEGER");
@@ -29,9 +29,8 @@ namespace Infra.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<int>("Category")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("TEXT");
@@ -43,6 +42,9 @@ namespace Infra.Migrations
                     b.Property<int?>("InvoiceId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid?>("InvoiceId1")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
 
@@ -51,16 +53,16 @@ namespace Infra.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("InvoiceId");
+                    b.HasIndex("InvoiceId1");
 
                     b.ToTable("Expenses");
                 });
 
             modelBuilder.Entity("Domain.Entities.Income", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("Account")
                         .HasColumnType("INTEGER");
@@ -68,9 +70,8 @@ namespace Infra.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<int>("Category")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("TEXT");
@@ -92,8 +93,11 @@ namespace Infra.Migrations
 
             modelBuilder.Entity("Domain.Entities.Invoice", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Account")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("CardName")
@@ -118,7 +122,7 @@ namespace Infra.Migrations
                 {
                     b.HasOne("Domain.Entities.Invoice", "Invoice")
                         .WithMany("Expenses")
-                        .HasForeignKey("InvoiceId");
+                        .HasForeignKey("InvoiceId1");
 
                     b.Navigation("Invoice");
                 });
