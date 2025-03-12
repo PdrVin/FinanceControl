@@ -6,6 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infra.Repositories;
 
-public class IncomeRepository(FinanceDbContext context)
-    : Repository<Income>(context), IIncomeRepository
+public class InvoiceRepository(FinanceDbContext context)
+    : Repository<Invoice>(context), IInvoiceRepository
 { }

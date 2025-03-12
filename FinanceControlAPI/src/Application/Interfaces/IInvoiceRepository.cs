@@ -3,6 +3,5 @@ using Domain.Entities;
 
 namespace Application.Interfaces;
 
-public interface IExpenseRepository : IRepository<Expense>
+public interface IInvoiceRepository : IRepository<Invoice>
 { }
-

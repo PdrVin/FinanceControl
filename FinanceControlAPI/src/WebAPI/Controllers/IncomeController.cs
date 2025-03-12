@@ -6,26 +6,21 @@ namespace WebAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class IncomeController : ControllerBase
+public class IncomeController(IIncomeRepository incomeRepository) : ControllerBase
 {
-    private readonly IIncomeRepository _incomeRepository;
-
-    public IncomeController(IIncomeRepository incomeRepository)
-    {
-        _incomeRepository = incomeRepository;
-    }
+    private readonly IIncomeRepository _incomeRepository = incomeRepository;
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var incomes = await _incomeRepository.GetAllIncomes();
+        var incomes = await _incomeRepository.GetAllAsync();
         return Ok(incomes);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var income = await _incomeRepository.GetIncomeById(id);
+        var income = await _incomeRepository.GetByIdAsync(id);
         if (income == null) return NotFound();
         return Ok(income);
     }
@@ -33,22 +28,23 @@ public class IncomeController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Income income)
     {
-        await _incomeRepository.AddIncome(income);
+        await _incomeRepository.SaveAsync(income);
         return CreatedAtAction(nameof(GetById), new { id = income.Id }, income);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] Income income)
+    public IActionResult Update(Guid id, [FromBody] Income income)
     {
         if (id != income.Id) return BadRequest();
-        await _incomeRepository.UpdateIncome(income);
+        _incomeRepository.Update(income);
         return NoContent();
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id)
+    public IActionResult Delete(Guid id, [FromBody] Income income)
     {
-        await _incomeRepository.DeleteIncome(id);
+        if (id != income.Id) return BadRequest();
+        _incomeRepository.Delete(income);
         return NoContent();
     }
 }
