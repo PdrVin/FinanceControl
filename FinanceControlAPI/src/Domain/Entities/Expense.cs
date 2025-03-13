@@ -7,9 +7,9 @@ public class Expense : EntityBase
 {
     public Status Status { get; set; }
     public PayType PayType { get; set; }
-    public required DateTime Date { get; set; }
-    public required string Description { get; set; }
-    public Category Category { get; set; }
+    public DateTime Date { get; set; }
+    public string Description { get; set; }
+    public ExpenseCategory Category { get; set; }
     public Account Account { get; set; }
     public decimal Amount { get; set; }
     public Guid? InvoiceId { get; set; }
@@ -20,7 +20,7 @@ public class Expense : EntityBase
     public Expense
     (
         string description,
-        Category category,
+        ExpenseCategory category,
         decimal amount,
         DateTime date,
         Status status = Status.Pendente,
@@ -36,7 +36,7 @@ public class Expense : EntityBase
         if (string.IsNullOrWhiteSpace(description))
             throw new ArgumentException("The description cannot be null or empty.", nameof(description));
 
-        if (!Enum.IsDefined(typeof(Category), category))
+        if (!Enum.IsDefined(typeof(ExpenseCategory), category))
             throw new ArgumentException("Invalid category.", nameof(category));
 
         if (amount <= 0)

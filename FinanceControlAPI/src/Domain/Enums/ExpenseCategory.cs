@@ -1,6 +1,6 @@
 namespace Domain.Enums;
 
-public enum Category
+public enum ExpenseCategory
 {
     Casa,
     Educação,
