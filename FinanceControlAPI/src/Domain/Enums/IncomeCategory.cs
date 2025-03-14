@@ -3,6 +3,8 @@ namespace Domain.Enums;
 public enum IncomeCategory
 {
     Ganho,
-    Salário,
+    Investimento,
+    Outros,
     Presente,
+    Salário,
 }

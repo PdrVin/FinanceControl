@@ -32,11 +32,8 @@ public class Repository<T>
     {
         try
         {
-            var entity = await Entities.FindAsync(id);
-            if (entity is null)
+            return await Entities.FindAsync(id) ??
                 throw new KeyNotFoundException($"Entity with id {id} not found");
-
-            return entity;
         }
         catch (Exception ex)
         {
@@ -46,12 +43,12 @@ public class Repository<T>
 
     public async Task SaveAsync(T entity)
     {
-        if (entity is null)
-            throw new ArgumentNullException(nameof(entity));
+        ArgumentNullException.ThrowIfNull(entity);
 
         try
         {
             await Entities.AddAsync(entity);
+            await _context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
@@ -61,12 +58,12 @@ public class Repository<T>
 
     public async Task SaveRangeAsync(IEnumerable<T> entities)
     {
-        if (entities is null)
-            throw new ArgumentNullException(nameof(entities));
+        ArgumentNullException.ThrowIfNull(entities);
 
         try
         {
             await Entities.AddRangeAsync(entities);
+            await _context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
@@ -76,12 +73,12 @@ public class Repository<T>
 
     public void Update(T entity)
     {
-        if (entity is null)
-            throw new ArgumentNullException(nameof(entity));
+        ArgumentNullException.ThrowIfNull(entity);
 
         try
         {
-            _context.Update(entity);
+            Entities.Update(entity);
+            _context.SaveChanges();
         }
         catch (Exception ex)
         {
@@ -91,12 +88,12 @@ public class Repository<T>
 
     public void Delete(T entity)
     {
-        if (entity is null)
-            throw new ArgumentNullException(nameof(entity));
+        ArgumentNullException.ThrowIfNull(entity);
 
         try
         {
             Entities.Remove(entity);
+            _context.SaveChanges();
         }
         catch (Exception ex)
         {

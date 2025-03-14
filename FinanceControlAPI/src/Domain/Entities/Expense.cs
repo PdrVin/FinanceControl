@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using Domain.Entities.Base;
 using Domain.Enums;
 
@@ -17,6 +19,7 @@ public class Expense : EntityBase
 
     protected Expense() { }
 
+    [JsonConstructor]
     public Expense
     (
         string description,

@@ -1,8 +1,10 @@
+using System.Text.Json.Serialization;
 using Application.Interfaces;
 using Application.Interfaces.Base;
 using Infra.Context;
 using Infra.Repositories;
 using Infra.Repositories.Base;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +21,13 @@ builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.JsonSerializerOptions.IncludeFields = true;
+    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 var app = builder.Build();
 

@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using Domain.Entities.Base;
 using Domain.Enums;
 
@@ -15,6 +17,7 @@ public class Income : EntityBase
 
     protected Income() { }
 
+    [JsonConstructor]
     public Income(
         string description,
         IncomeCategory category,
