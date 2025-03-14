@@ -1,9 +1,8 @@
 using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
-using Microsoft.AspNetCore.Mvc;
-using Moq;
 using WebAPI.Controllers;
+using Microsoft.AspNetCore.Mvc;
 
 namespace UnitTests.System.Controllers;
 
