@@ -11,9 +11,9 @@ public class IncomeController(IIncomeRepository incomeRepository) : ControllerBa
     private readonly IIncomeRepository _incomeRepository = incomeRepository;
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll(int skip = 0, int take = 25)
     {
-        var incomes = await _incomeRepository.GetAllAsync();
+        var incomes = await _incomeRepository.GetAllAsync(skip, take);
         return Ok(incomes);
     }
 
@@ -21,30 +21,36 @@ public class IncomeController(IIncomeRepository incomeRepository) : ControllerBa
     public async Task<IActionResult> GetById(Guid id)
     {
         var income = await _incomeRepository.GetByIdAsync(id);
-        if (income == null) return NotFound();
-        return Ok(income);
+        return income is null ? NotFound() : Ok(income);
     }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Income income)
     {
-        await _incomeRepository.SaveAsync(income);
-        return CreatedAtAction(nameof(GetById), new { id = income.Id }, income);
+        if (income is null) return BadRequest("Income cannot be null");
+        var result = await _incomeRepository.CreateAsync(income);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
     [HttpPut("{id}")]
-    public IActionResult Update(Guid id, [FromBody] Income income)
+    public async Task<IActionResult> Update(Guid id, [FromBody] Income income)
     {
-        if (id != income.Id) return BadRequest();
-        _incomeRepository.Update(income);
-        return NoContent();
+        if (id != income.Id) return BadRequest("ID mismatch");
+
+        var existingIncome = await _incomeRepository.GetByIdAsync(id);
+        if (existingIncome is null) return NotFound();
+
+        var result = await _incomeRepository.UpdateAsync(income);
+        return Ok(result);
     }
 
     [HttpDelete("{id}")]
-    public IActionResult Delete(Guid id, [FromBody] Income income)
+    public async Task<IActionResult> Delete(Guid id)
     {
-        if (id != income.Id) return BadRequest();
-        _incomeRepository.Delete(income);
+        var existingIncome = await _incomeRepository.GetByIdAsync(id);
+        if (existingIncome is null) return NotFound();
+
+        await _incomeRepository.DeleteAsync(id);
         return NoContent();
     }
 }

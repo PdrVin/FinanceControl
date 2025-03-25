@@ -4,10 +4,9 @@ namespace Application.Interfaces.Base;
 
 public interface IRepository<T> where T : IEntity
 {
-    Task<IEnumerable<T>> GetAllAsync();
+    Task<List<T>> GetAllAsync(int skip, int take);
     Task<T> GetByIdAsync(Guid id);
-    Task SaveAsync(T entity);
-    Task SaveRangeAsync(IEnumerable<T> entities);
-    void Update(T entity);
-    void Delete(T entity);
+    Task<T> CreateAsync(T entity);
+    Task<T> UpdateAsync(T entity);
+    Task DeleteAsync(Guid id);
 }

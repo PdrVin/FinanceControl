@@ -16,89 +16,39 @@ public class Repository<T>
         Entities = _context.Set<T>();
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync()
+    public async Task<List<T>> GetAllAsync(int skip = 0, int take = 25)
     {
-        try
-        {
-            return await Entities.AsNoTracking().ToListAsync();
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Error fetching all entities", ex);
-        }
+        return await Entities.AsNoTracking().Skip(skip).Take(take).ToListAsync();
     }
 
     public async Task<T> GetByIdAsync(Guid id)
     {
-        try
-        {
-            return await Entities.FindAsync(id) ??
-                throw new KeyNotFoundException($"Entity with id {id} not found");
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Error fetching entity with id {id}", ex);
-        }
+        return await Entities.FindAsync(id) ??
+            throw new KeyNotFoundException($"Entity with id {id} not found");
     }
 
-    public async Task SaveAsync(T entity)
+    public async Task<T> CreateAsync(T entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
-
-        try
-        {
-            await Entities.AddAsync(entity);
-            await _context.SaveChangesAsync();
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Error saving entity", ex);
-        }
+        await Entities.AddAsync(entity);
+        await _context.SaveChangesAsync();
+        return entity;
     }
 
-    public async Task SaveRangeAsync(IEnumerable<T> entities)
-    {
-        ArgumentNullException.ThrowIfNull(entities);
-
-        try
-        {
-            await Entities.AddRangeAsync(entities);
-            await _context.SaveChangesAsync();
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Error saving entities", ex);
-        }
-    }
-
-    public void Update(T entity)
+    public async Task<T> UpdateAsync(T entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
-
-        try
-        {
-            Entities.Update(entity);
-            _context.SaveChanges();
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Error updating entity", ex);
-        }
+        _context.Entry(entity).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
+        return entity;
     }
 
-    public void Delete(T entity)
+    public async Task DeleteAsync(Guid id)
     {
+        var entity = await GetByIdAsync(id);
         ArgumentNullException.ThrowIfNull(entity);
-
-        try
-        {
-            Entities.Remove(entity);
-            _context.SaveChanges();
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Error deleting entity", ex);
-        }
+        Entities.Remove(entity);
+        await _context.SaveChangesAsync();
     }
 
     public void Dispose()

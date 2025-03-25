@@ -12,40 +12,46 @@ public class InvoiceController(IInvoiceRepository invoiceRepository)
     private readonly IInvoiceRepository _invoiceRepository = invoiceRepository;
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll(int skip = 0, int take = 25)
     {
-        var Invoices = await _invoiceRepository.GetAllAsync();
-        return Ok(Invoices);
+        var invoices = await _invoiceRepository.GetAllAsync(skip, take);
+        return Ok(invoices);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var invoice = await _invoiceRepository.GetByIdAsync(id);
-        if (invoice == null) return NotFound();
-        return Ok(invoice);
+        return invoice is null ? NotFound() : Ok(invoice);
     }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Invoice invoice)
     {
-        await _invoiceRepository.SaveAsync(invoice);
-        return CreatedAtAction(nameof(GetById), new { id = invoice.Id }, invoice);
+        if (invoice is null) return BadRequest("Invoice cannot be null");
+        var result = await _invoiceRepository.CreateAsync(invoice);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
     [HttpPut("{id}")]
-    public IActionResult Update(Guid id, [FromBody] Invoice invoice)
+    public async Task<IActionResult> Update(Guid id, [FromBody] Invoice invoice)
     {
-        if (id != invoice.Id) return BadRequest();
-        _invoiceRepository.Update(invoice);
-        return NoContent();
+        if (id != invoice.Id) return BadRequest("ID mismatch");
+
+        var existingInvoice = await _invoiceRepository.GetByIdAsync(id);
+        if (existingInvoice is null) return NotFound();
+
+        var result = await _invoiceRepository.UpdateAsync(invoice);
+        return Ok(result);
     }
 
     [HttpDelete("{id}")]
-    public IActionResult Delete(Guid id, [FromBody] Invoice invoice)
+    public async Task<IActionResult> Delete(Guid id)
     {
-        if (id != invoice.Id) return BadRequest();
-        _invoiceRepository.Delete(invoice);
+        var existingInvoice = await _invoiceRepository.GetByIdAsync(id);
+        if (existingInvoice is null) return NotFound();
+
+        await _invoiceRepository.DeleteAsync(id);
         return NoContent();
     }
 }
