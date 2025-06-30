@@ -13,11 +13,7 @@ public class Invoice : EntityBase
     public decimal TotalAmount { get; set; }
     public ICollection<Expense>? Expenses { get; set; }
 
-    public Invoice()
-    {
-        InvoiceName = string.Empty;
-        Expenses = new List<Expense>();
-    }
+    protected Invoice() { }
 
     public Invoice(
         Account account,
