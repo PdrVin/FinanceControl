@@ -1,4 +1,4 @@
-namespace Application.Helpers.Pagination;
+namespace Application.Helpers;
 
 public class PagedResult<T>
 {

@@ -1,0 +1,245 @@
+﻿@using Domain.Entities
+@using Domain.Enums
+@using WebUI.ViewModels.Expense
+
+@model ExpenseViewModel
+@{
+    ViewData["Title"] = "Despesas";
+}
+
+<div class="container mt-4 mx-auto">
+
+    @if (TempData["MessageSuccess"] != null)
+    {
+        <div class="alert alert-success" role="alert">
+            @TempData["MessageSuccess"]
+            <button type="button" class="btn btn-danger btn-md close-alert" arial-label="Close">
+                <i class="bi bi-x-lg"></i></button>
+        </div>
+    }
+
+    @if (TempData["MessageError"] != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            @TempData["MessageError"]
+            <button type="button" class="btn btn-danger btn-md close-alert" arial-label="Close">
+                <i class="bi bi-x-lg"></i></button>
+        </div>
+    }
+
+    <div class="mb-4">
+        <h2>Despesas</h2>
+    </div>
+
+    @* Cabeçalho de Navegação do Mês *@
+    <div class="d-flex justify-content-center align-items-center mb-4 p-3">
+        <button class="btn btn-link fs-4 p-0 me-2 rounded-pill shadow-sm" aria-label="Mês Anterior">
+            <i class="bi bi-chevron-left px-2"></i></button>
+        <span class="fs-5 fw-bold text-white px-3 py-2 rounded-pill bg-primary shadow-sm">Julho 2025</span> 
+        <button class="btn btn-link fs-4 p-0 ms-2 rounded-pill shadow-sm" aria-label="Próximo Mês">
+            <i class="bi bi-chevron-right px-2"></i></button>
+    </div>
+
+    <div class="card border shadow-sm rounded">
+        <div class="card-body p-4">
+
+            @* Seção de Pesquisa e Botões (Adaptado para o topo da tabela)*@
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h6 class="mb-0">Todos as Despesas ( @Model.TotalItems )</h6>
+                <div class="d-flex align-items-center">
+                    <div class="input-group me-2" style="width: 250px;">
+                        <input type="text" class="form-control border-secondary" placeholder="Pesquisar" value="@Model.SearchTerm" id="searchTerm">
+                        <span class="input-group-text border-secondary"><i class="bi bi-search"></i></span>
+                    </div>
+
+                    <button class="btn btn-outline-secondary me-2 px-4 py-2 rounded" onclick="applyFilter()"> 
+                        <i class="bi bi-funnel"></i> Filtros
+                    </button>
+
+                    <a asp-action="Create" class="btn btn-outline-primary px-4 py-2 rounded">
+                        <i class="bi bi-plus-lg"></i> Adicionar Despesa
+                    </a>
+
+                    <button id="deleteSelectedBtn" class="btn btn-outline-danger ms-2 px-4 py-2 rounded" style="display: none;" onclick="deleteSelected()">
+                        <i class="bi bi-trash"></i> Excluir Selecionados
+                    </button>
+                </div>
+            </div>
+
+            <table class="table table-border table-responsive align-middle mb-0 text-light" id="table-album">
+                <thead style="background-color: #343a40; border-radius: 10px 10px 0 0;">
+                    <tr>
+                        <th scope="col" style="width: 2%; border-top-left-radius: 10px;">
+                            <input type="checkbox" id="selectAll" class="form-check-input border-secondary">
+                        </th>
+                        <th scope="col" style="width: 8%;">Status</th>
+                        <th scope="col" style="width: 10%;">Data</th>
+                        <th scope="col" class="d-none d-md-table-cell">Descrição</th>
+                        <th scope="col" class="d-none d-md-table-cell">Categoria</th>
+                        <th scope="col" class="d-none d-md-table-cell">Conta</th>
+                        <th scope="col" class="d-none d-md-table-cell">Valor</th>
+                        <th scope="col" class="rounded-top-end" style="width: 10%;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Expenses.Any())
+                    {
+                        @foreach (var expense in Model.Expenses)
+                        {
+                            <tr class="align-middle">
+                                <td>
+                                    <input type="checkbox" class="selectActivity form-check-input border-secondary" 
+                                        name="ids" value="@expense.Id">
+                                </td>
+                                <td>
+                                    <a title="@expense.Status">
+                                        @if (expense.Status == Status.Pago)
+                                            { <i class="bi bi-check-circle-fill text-success"></i> }
+                                        else if (expense.Status == Status.Pendente)
+                                            { <i class="bi bi-exclamation-circle-fill text-danger"></i> }
+                                    </a>
+                                </td>
+                                <td class="d-md-table-cell">@expense.Date.ToString("dd/MM/yyyy")</td>
+                                <td class="d-md-table-cell">@expense.Description</td>
+                                <td class="d-md-table-cell">@expense.Category</td>
+                                <td class="d-md-table-cell">@expense.Account</td>
+                                <td class="text-danger d-md-table-cell">R$ @expense.Amount.ToString("N2")</td>
+                                <td>
+                                    <div class="btn-group-sm" role="group">
+                                        <a role="button" class="btn btn-primary" aria-label="Editar"
+                                            asp-route-id="@expense.Id" asp-action="Edit">
+                                            <i class="bi bi-pencil"></i></a>
+                                        <a role="button" class="btn btn-danger" aria-label="Deletar"
+                                            asp-route-id="@expense.Id" asp-action="Delete">
+                                            <i class="bi bi-trash3"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <td colspan="6">Nenhuma Despesa Cadastrada!</td>
+                    }
+                </tbody>
+            </table>
+
+            <div class="d-flex justify-content-between align-items-center mt-3">
+
+                <div class="d-flex align-items-center">
+                    <span class="me-2">Linhas por página:</span>
+                    <select class="form-select form-select-sm border-secondary w-auto"
+                        onchange="changePageSize(this.value)">
+                        <option value="10" selected=@(Model.PageSize == 10 ? true : false)>10</option>
+                        <option value="25" selected=@(Model.PageSize == 25 ? true : false)>25</option>
+                        <option value="50" selected=@(Model.PageSize == 50 ? true : false)>50</option>
+                        <option value="100" selected=@(Model.PageSize == 100 ? true : false)>100</option>
+                    </select>
+                </div>
+
+                <div>
+                    <span class="text-muted">
+                        Mostrando @((Model.PageNumber - 1) * Model.PageSize + 1)-@(Model.PageNumber * Model.PageSize) de @Model.TotalItems
+                    </span>
+                </div>
+
+                @if (Model.TotalItems > 10)
+                {
+                    <nav aria-label="Navegação de página">
+                        <ul class="pagination pagination-sm mb-0"> @* pagination-sm para botões menores *@
+
+                            <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                                <a class="page-link border-secondary" aria-label="Anterior"
+                                    href="@Url.Action("Index", new {
+                                            pageNumber = Model.PageNumber - 1,
+                                            pageSize = Model.PageSize,
+                                            searchTerm = Model.SearchTerm })">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+
+                            @for (var i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                    <a class="page-link @(i == Model.PageNumber ? "bg-primary border-primary" : "border-secondary")"
+                                       href="@Url.Action("Index", new {
+                                                pageNumber = i,
+                                                pageSize = Model.PageSize,
+                                                searchTerm = Model.SearchTerm })">@i</a>
+                                </li>
+                            }
+
+                            <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link border-secondary" aria-label="Próximo"
+                                    href="@Url.Action("Index", new {
+                                            pageNumber = Model.PageNumber + 1,
+                                            pageSize = Model.PageSize,
+                                            searchTerm = Model.SearchTerm })">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@* JavaScript para os filtros e paginação *@
+<script>
+    function applyFilter() {
+        var searchTerm = document.getElementById('searchTerm').value;
+        window.location.href = '@Url.Action("Index", "Expense")?searchTerm=' + searchTerm;
+    }
+
+    function changePageSize(pageSize) {
+        var searchTerm = document.getElementById('searchTerm').value;
+        window.location.href = '@Url.Action("Index", "Expense")?pageSize=' + pageSize + '&searchTerm=' + searchTerm;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Lógica para o botão "Excluir Selecionados" e checkboxes
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const selectActivityCheckboxes = document.querySelectorAll('.selectActivity');
+        const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+
+        function updateDeleteButtonVisibility() {
+            const anyChecked = Array.from(selectActivityCheckboxes).some(cb => cb.checked);
+            deleteSelectedBtn.style.display = anyChecked ? 'inline-block' : 'none';
+        }
+
+        selectAllCheckbox.addEventListener('change', function () {
+            selectActivityCheckboxes.forEach(cb => {
+                cb.checked = this.checked;
+            });
+            updateDeleteButtonVisibility();
+        });
+
+        selectActivityCheckboxes.forEach(cb => {
+            cb.addEventListener('change', updateDeleteButtonVisibility);
+        });
+
+        // Inicializa a visibilidade do botão de exclusão ao carregar a página
+        updateDeleteButtonVisibility();
+
+        // Lógica para fechar alertas (se você quiser reintroduzir os alertas)
+        document.querySelectorAll('.close-alert').forEach(button => {
+            button.addEventListener('click', function () {
+                this.closest('.alert').remove();
+            });
+        });
+    });
+
+    function deleteSelected() {
+        const selectedIds = Array.from(document.querySelectorAll('.selectActivity:checked')).map(cb => cb.value);
+        if (selectedIds.length > 0) {
+            if (confirm('Tem certeza que deseja excluir as despesas selecionadas?')) { // Use um modal Bootstrap real em produção
+                alert('Itens a serem excluídos: ' + selectedIds.join(', ')); // Apenas para demonstração
+                window.location.reload(); // Recarrega a página após a "exclusão"
+            }
+        } else {
+            alert('Nenhuma despesa selecionada para exclusão.');
+        }
+    }
+</script>

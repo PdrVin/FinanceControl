@@ -42,7 +42,8 @@ public class ExpenseRepository : Repository<Expense>, IExpenseRepository
         {
             query = query.Where(e =>
                 e.Description.Contains(searchTerm) ||
-                e.Category.ToString().Contains(searchTerm)
+                e.Category.ToString().Contains(searchTerm) ||
+                e.Account.ToString().Contains(searchTerm)
             );
         }
         
@@ -55,5 +56,39 @@ public class ExpenseRepository : Repository<Expense>, IExpenseRepository
             .ToListAsync();
 
         return (items, totalCount);
+    }
+
+    public async Task<IEnumerable<Expense>> GetExpensesByPeriodAsync(
+        int? year = null,
+        int? month = null,
+        string searchTerm = ""
+    )
+    {
+        var query = Entities
+            .Include(e => e.Invoice)
+            .AsNoTracking();
+
+        if (year.HasValue)
+        {
+            query = query.Where(e => e.Date.Year == year.Value);
+        }
+
+        if (month.HasValue)
+        {
+            query = query.Where(e => e.Date.Month == month.Value);
+        }
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            query = query.Where(e =>
+                e.Description.Contains(searchTerm) ||
+                e.Category.ToString().Contains(searchTerm) ||
+                e.Account.ToString().Contains(searchTerm)
+            );
+        }
+
+        return await query
+            .OrderByDescending(e => e.Date)
+            .ToListAsync();
     }
 }

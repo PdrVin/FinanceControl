@@ -1,0 +1,115 @@
+@using Application.DTOs
+@using Domain.Enums
+
+@model ExpenseDto
+@{
+    ViewData["Title"] = "Nova Despesa";
+}
+
+<div class="container-fluid p-0">
+    @* Cabeçalho do Modal/Página (usando classes Bootstrap para layout) *@
+    <div class="d-flex justify-content-between align-items-center py-3 px-4 bg-light border-bottom rounded-top">
+        <h2 class="h5 mb-0 fw-bold">Nova Despesa</h2>
+        <button type="button" class="btn-close" aria-label="Fechar"></button>
+    </div>
+
+    @* Formulário Principal *@
+    <div class="card rounded-0 rounded-bottom border-0 shadow-sm">
+        <div class="card-body">
+            <form asp-controller="Expense" asp-action="Create" method="post" id="expenseForm">
+                @Html.AntiForgeryToken() @* Adiciona o token anti-CSRF para segurança *@
+
+                @* Seção de Valor *@
+                <div class="mb-3 d-flex align-items-center">
+                    <div class="me-3 text-primary fs-5">
+                        <i class="bi bi-calculator"></i> @* Ícone de Calculadora *@
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text">R$</span>
+                        <input type="text" asp-for="Amount" class="form-control w-50" placeholder="0,00" />
+                    </div>
+                </div>
+                @Html.ValidationMessageFor(x => x.Amount, "Deve ter um valor maior que 0", new { @class = "hidden text-danger d-block ms-5" })
+
+                <hr class="my-3" />
+
+                @* Seção "Foi paga" (agora um dropdown para o Enum Status) *@
+                <div class="mb-3 d-flex align-items-center">
+                    <div class="me-3 text-primary fs-5">
+                        <i class="bi bi-check-circle"></i> @* Ícone de Checkmark *@
+                    </div>
+                    <select asp-for="Status" class="form-select w-50"> @* Ajuste a largura conforme necessário *@
+                        @foreach (var status in Enum.GetValues(typeof(Status)).Cast<Status>())
+                        {
+                            <option value="@status">@status.ToString()</option>
+                        }
+                    </select>
+                </div>
+                @Html.ValidationMessageFor(x => x.Status, null, new { @class = "text-danger d-block ms-5" })
+
+                <hr class="my-3" />
+
+                @* Seção de Data *@
+                <div class="mb-3 d-flex align-items-center">
+                    <div class="me-3 text-primary fs-5">
+                        <i class="bi bi-calendar"></i> @* Ícone de Calendário *@
+                    </div>
+                    <input type="date" asp-for="Date" class="form-control w-50"/>
+                </div>
+
+                <hr class="my-3" />
+
+                @* Seção de Descrição *@
+                <div class="mb-3 d-flex align-items-center">
+                    <div class="me-3 text-primary fs-5">
+                        <i class="bi bi-file-earmark-text"></i> @* Ícone de Documento/Texto *@
+                    </div>
+                    <input type="text" asp-for="Description" class="form-control w-50" placeholder="Descrição" />
+                </div>
+
+                <hr class="my-3" />
+
+                @* Seção de Categoria *@
+                <div class="mb-3 d-flex align-items-center">
+                    <div class="me-3 text-primary fs-5">
+                        <i class="bi bi-book"></i> @* Ícone de Livro/Categoria *@
+                    </div>
+                    <select asp-for="Category" class="form-select w-50"> @* Ajuste a largura conforme necessário *@
+                        <option value="">Categoria</option>
+                        @foreach (var catg in Enum.GetValues(typeof(ExpenseCategory)).Cast<ExpenseCategory>())
+                        {
+                            <option value="@catg">@catg.ToString()</option>
+                        }
+                    </select>
+                </div>
+                @Html.ValidationMessageFor(x => x.Category, "Nenhuma Categoria selecionada.", new { @class = "text-danger d-block ms-5" })
+
+                <hr class="my-3" />
+
+                @* Seção de Conta *@
+                <div class="mb-3 d-flex align-items-center">
+                    <div class="me-3 text-primary fs-5">
+                        <i class="bi bi-wallet"></i> @* Ícone de Carteira *@
+                    </div>
+                    <select asp-for="Account" class="form-select w-50"> @* Ajuste a largura conforme necessário *@
+                        <option value="">Conta</option>
+                        @foreach (var account in Enum.GetValues(typeof(Account)).Cast<Account>())
+                        {
+                            <option value="@account">@account.ToString()</option>
+                        }
+                    </select>
+                </div>
+                @Html.ValidationMessageFor(x => x.Account, "Nenhuma Conta selecionada.", new { @class = "text-danger d-block ms-5" })
+
+                <hr class="my-3" />
+
+                @* Botões de Ação *@
+                <div class="d-flex justify-content-end gap-2 pt-3 border-top mt-3">
+                    @* <button type="button" class="btn btn-secondary">Salvar e Criar Nova</button> *@
+                    <a class="btn btn-secondary" role="button" asp-action="Index">Voltar</a>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

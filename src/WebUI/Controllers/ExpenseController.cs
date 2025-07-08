@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Domain.Entities;
 using AutoMapper;
 using Application.DTOs;
+using WebUI.ViewModels.Expense;
 
 namespace WebAPI.Controllers;
 
@@ -19,20 +20,20 @@ public class ExpenseController : Controller
 
     #region Index
     [HttpGet]
-    public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 20, string searchTerm = "")
+    public async Task<IActionResult> Index(
+        int pageNumber = 1, int pageSize = 20, string searchTerm = "")
     {
         var paginatedExpenses = await _expenseService.GetPaginatedExpensesAsync(pageNumber, pageSize, searchTerm);
 
         return View(
-            paginatedExpenses
-        // new ExpenseListViewModel
-        // {
-        //     Albums = paginatedExpenses.Items,
-        //     PageNumber = paginatedExpenses.PageNumber,
-        //     PageSize = paginatedExpenses.PageSize,
-        //     TotalItems = paginatedExpenses.TotalItems,
-        //     SearchTerm = searchTerm
-        // }
+            new ExpenseViewModel
+            {
+                Expenses = paginatedExpenses.Items,
+                PageNumber = paginatedExpenses.PageNumber,
+                PageSize = paginatedExpenses.PageSize,
+                TotalItems = paginatedExpenses.TotalItems,
+                SearchTerm = searchTerm
+            }
         );
     }
     #endregion

@@ -1,11 +1,12 @@
 using Application.DTOs;
-using Application.Helpers.Pagination;
+using Application.Helpers;
 using Application.Interfaces;
 using Application.Services.Base;
 using Domain.Entities;
 using Domain.Interfaces;
 using Domain.Interfaces.Base;
 using AutoMapper;
+using System.Globalization;
 
 namespace Application.Services;
 
@@ -83,4 +84,24 @@ public class ExpenseService : Service<ExpenseDto, Expense>, IExpenseService
         };
     }
     #endregion
+
+    public async Task<IEnumerable<MonthlyExpenseGroup<ExpenseDto>>> GetExpensesByPeriodAsync(
+        int? year = null, int? month = null, string searchTerm = "")
+    {
+        var expenses = await _expenseRepository.GetExpensesByPeriodAsync(year, month, searchTerm);
+
+        var groupedExpenses = expenses
+            .OrderByDescending(e => e.Date)
+            .GroupBy(e => new { e.Date.Year, e.Date.Month })
+            .Select(g => new MonthlyExpenseGroup<ExpenseDto>
+            {
+                MonthYear = new DateTime(g.Key.Year, g.Key.Month, 1)
+                    .ToString("MMMM yyyy", new CultureInfo("pt-BR")),
+                Entities = _mapper.Map<IEnumerable<ExpenseDto>>(g.OrderByDescending(e => e.Date)),
+                MonthlyTotal = g.Sum(e => e.Amount)
+            })
+            .ToList();
+
+        return groupedExpenses;
+    }
 }

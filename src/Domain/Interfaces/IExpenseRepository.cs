@@ -9,5 +9,7 @@ public interface IExpenseRepository : IRepository<Expense>
     Task<Expense> GetExpenseByIdAsync(Guid id);
     Task<(IEnumerable<Expense> Items, int TotalCount)> GetPaginatedAsync(
         int pageNumber, int pageSize, string searchTerm = "");
+    Task<IEnumerable<Expense>> GetExpensesByPeriodAsync(
+        int? year = null, int? month = null, string searchTerm = "");
 }
 

@@ -2,8 +2,8 @@ namespace Domain.Enums;
 
 public enum Account
 {
-    Caixa,
     Carteira,
+    Caixa,
     Nubank,
     PicPay,
 }
