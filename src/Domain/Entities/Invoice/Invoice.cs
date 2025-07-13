@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using Domain.Entities.Base;
 using Domain.Enums;
 
@@ -7,51 +6,60 @@ namespace Domain.Entities;
 public class Invoice : EntityBase
 {
     public string InvoiceName { get; set; }
-    public Account Account { get; set; }
     public DateTime ClosingDate { get; set; }
     public DateTime DueDate { get; set; }
     public decimal TotalAmount { get; set; }
-    public ICollection<Expense>? Expenses { get; set; }
+    public int ReferenceMonth { get; set; }
+    public int ReferenceYear { get; set; }
+    public bool IsPaid { get; set; }
+
+    public Guid CreditCardId { get; set; }
+    public CreditCard CreditCard { get; set; }
+
+    public ICollection<CardExpense>? CardExpenses { get; set; }
 
     protected Invoice() { }
 
     public Invoice(
-        Account account,
         DateTime closingDate,
         DateTime dueDate,
-        ICollection<Expense>? expenses = null
+        int referenceMonth,
+        int referenceYear,
+        bool isPaid = false
     )
     {
         if (closingDate >= dueDate)
             throw new ArgumentException("ClosingDate must be before the DueDate.", nameof(closingDate));
 
-        Account = account;
         ClosingDate = closingDate;
         DueDate = dueDate;
-        Expenses = expenses ?? new List<Expense>();
+        ReferenceMonth = referenceMonth;
+        ReferenceYear = referenceYear;
+        IsPaid = isPaid;
+        CardExpenses = [];
         UpdateInvoiceName();
         CalculateTotalAmount();
         CreatedAt = DateTime.UtcNow;
     }
 
-    public void AddExpense(Expense expense)
+    public void AddExpense(CardExpense expense)
     {
         ArgumentNullException.ThrowIfNull(expense);
 
         if (expense.InvoiceId != null && expense.InvoiceId != Id)
             throw new ArgumentException("A despesa pertence a outra fatura.", nameof(expense.InvoiceId));
 
-        Expenses?.Add(expense);
+        CardExpenses?.Add(expense);
         CalculateTotalAmount();
     }
 
     private void UpdateInvoiceName()
     {
-        InvoiceName = $"{Account} - {DueDate:MMMM yyyy}";
+        InvoiceName = $"{CreditCard.Name} - {DueDate.Month} {ReferenceYear}";
     }
     
     private void CalculateTotalAmount()
     {
-        TotalAmount = Expenses?.Sum(ex => ex.Amount) ?? 0;
+        TotalAmount = CardExpenses?.Sum(ex => ex.Amount) ?? 0;
     }
 }
