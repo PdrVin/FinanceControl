@@ -1,8 +1,9 @@
-using Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Domain.Entities;
+using Domain.Enums;
+using Domain.Interfaces;
 using Infra.Context;
 using Infra.Repositories.Base;
-using Microsoft.EntityFrameworkCore;
 
 namespace Infra.Repositories;
 
@@ -14,7 +15,7 @@ public class ExpenseRepository : Repository<Expense>, IExpenseRepository
     public async Task<IEnumerable<Expense>> GetAllExpensesAsync()
     {
         return await Entities
-            .Include(e => e.Invoice)
+            .Include(e => e.BankAccount)
             .AsNoTracking()
             .ToListAsync();
     }
@@ -22,11 +23,29 @@ public class ExpenseRepository : Repository<Expense>, IExpenseRepository
     public async Task<Expense> GetExpenseByIdAsync(Guid id)
     {
         return await Entities
-            .Include(e => e.Invoice)
+            .Include(e => e.BankAccount)
             .AsNoTracking()
             .FirstOrDefaultAsync(i => i.Id == id)
             ?? throw new KeyNotFoundException($"Expense with id {id} not found");
     }
+
+    public async Task<IEnumerable<Expense>> GetExpensesByBankAccountIdAsync(Guid bankAccountId)
+    {
+        return await Entities
+            .Where(e => e.BankAccountId == bankAccountId)
+            .Include(e => e.BankAccount)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Expense>> GetExpensesByCategoryAsync(ExpenseCategory category)
+    {
+        return await Entities
+            .Where(e => e.Category == category)
+            .Include(e => e.BankAccount)
+            .AsNoTracking()
+            .ToListAsync();
+    }  
 
     public async Task<(IEnumerable<Expense> Items, int TotalCount)> GetPaginatedAsync(
         int pageNumber,
@@ -35,7 +54,7 @@ public class ExpenseRepository : Repository<Expense>, IExpenseRepository
     )
     {
         var query = Entities
-            .Include(e => e.Invoice)
+            .Include(e => e.BankAccount)
             .AsNoTracking();
 
         if (!string.IsNullOrEmpty(searchTerm))
@@ -43,10 +62,10 @@ public class ExpenseRepository : Repository<Expense>, IExpenseRepository
             query = query.Where(e =>
                 e.Description.Contains(searchTerm) ||
                 e.Category.ToString().Contains(searchTerm) ||
-                e.Account.ToString().Contains(searchTerm)
+                e.BankAccount!.ToString().Contains(searchTerm)
             );
         }
-        
+
         var totalCount = await query.CountAsync();
 
         var items = await query
@@ -56,39 +75,5 @@ public class ExpenseRepository : Repository<Expense>, IExpenseRepository
             .ToListAsync();
 
         return (items, totalCount);
-    }
-
-    public async Task<IEnumerable<Expense>> GetExpensesByPeriodAsync(
-        int? year = null,
-        int? month = null,
-        string searchTerm = ""
-    )
-    {
-        var query = Entities
-            .Include(e => e.Invoice)
-            .AsNoTracking();
-
-        if (year.HasValue)
-        {
-            query = query.Where(e => e.Date.Year == year.Value);
-        }
-
-        if (month.HasValue)
-        {
-            query = query.Where(e => e.Date.Month == month.Value);
-        }
-
-        if (!string.IsNullOrEmpty(searchTerm))
-        {
-            query = query.Where(e =>
-                e.Description.Contains(searchTerm) ||
-                e.Category.ToString().Contains(searchTerm) ||
-                e.Account.ToString().Contains(searchTerm)
-            );
-        }
-
-        return await query
-            .OrderByDescending(e => e.Date)
-            .ToListAsync();
     }
 }

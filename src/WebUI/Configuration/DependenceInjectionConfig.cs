@@ -27,9 +27,14 @@ public static class DependencyInjectionConfig
         #endregion
 
         #region Repositories
+        services.AddScoped<IBankAccountRepository, BankAccountRepository>();
+        services.AddScoped<ICreditCardRepository, CreditCardRepository>();
+        services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+        services.AddScoped<IInvoicePaymentRepository, InvoicePaymentRepository>();
+        services.AddScoped<ICardExpenseRepository, CardExpenseRepository>();
         services.AddScoped<IExpenseRepository, ExpenseRepository>();
         services.AddScoped<IIncomeRepository, IncomeRepository>();
-        services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+        services.AddScoped<ITransferRepository, TransferRepository>();
         #endregion
 
         #region AutoMapper
