@@ -27,5 +27,6 @@ public class CardExpenseRequest
     [Required(ErrorMessage = "Credit Card ID is required.")]
     public Guid CreditCardId { get; set; }
 
-    public Guid? InvoiceId { get; set; } // Nullable if not immediately assigned to an invoice
+    [Required(ErrorMessage = "Invoice ID is required.")]
+    public Guid InvoiceId { get; set; }
 }

@@ -24,5 +24,5 @@ public class IncomeRequest
 
     public bool IsReceived { get; set; } = false;
 
-    public Guid? BankAccountId { get; set; }
+    public Guid BankAccountId { get; set; }
 }

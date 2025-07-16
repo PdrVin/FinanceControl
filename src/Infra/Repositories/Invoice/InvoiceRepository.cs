@@ -40,10 +40,10 @@ public class InvoiceRepository : Repository<Invoice>, IInvoiceRepository
             .ToListAsync();
     }
 
-    public async Task<Invoice?> GetInvoiceByMonthAndYearAsync(Guid creditCardId, int month, int year)
+    public async Task<Invoice?> GetInvoiceByPeriodAsync(int month, int year)
     {
         return await Entities
-            .Where(i => i.CreditCardId == creditCardId && i.ReferenceMonth == month && i.ReferenceYear == year)
+            .Where(i => i.ReferenceMonth == month && i.ReferenceYear == year)
             .Include(i => i.CreditCard)
             .Include(i => i.CardExpenses)
             .FirstOrDefaultAsync();

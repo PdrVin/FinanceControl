@@ -12,6 +12,9 @@ public class CardExpense : EntityBase
     public ExpenseCategory Category { get; set; }
     public bool IsPaid { get; set; }
 
+    public Guid BankAccountId { get; set; }
+    public BankAccount? BankAccount { get; set; }
+
     public Guid CreditCardId { get; set; }
     public CreditCard CreditCard { get; set; }
 
@@ -28,6 +31,7 @@ public class CardExpense : EntityBase
         ExpenseCategory category,
         DateTime date,
         Guid creditCardId,
+        Guid bankAccountId,
         PayType type = PayType.Pix,
         bool isPaid = false,
         Guid? invoiceId = null
@@ -51,6 +55,7 @@ public class CardExpense : EntityBase
         Category = category;
         Date = date;
         IsPaid = isPaid;
+        BankAccountId = bankAccountId;
         CreditCardId = creditCardId;
         InvoiceId = invoiceId;
     }

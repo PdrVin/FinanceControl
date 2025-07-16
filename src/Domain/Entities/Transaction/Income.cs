@@ -12,7 +12,7 @@ public class Income : EntityBase
     public IncomeCategory Category { get; set; }
     public bool IsReceived { get; set; }
 
-    public Guid? BankAccountId { get; set; }
+    public Guid BankAccountId { get; set; }
     public BankAccount? BankAccount { get; set; }
 
     protected Income() { }
@@ -23,9 +23,9 @@ public class Income : EntityBase
         decimal amount,
         IncomeCategory category,
         DateTime date,
+        Guid bankAccountId,
         PayType type = PayType.Pix,
-        bool isReceived = false,
-        Guid? bankAccountId = null
+        bool isReceived = false
     )
     {
         if (string.IsNullOrWhiteSpace(description))

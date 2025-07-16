@@ -16,14 +16,19 @@ public static class DependencyInjectionConfig
     {
         #region Base
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-        services.AddScoped(typeof(IService<,>), typeof(Service<,>));
+        services.AddScoped(typeof(IService<,,>), typeof(Service<,,>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         #endregion
 
         #region Services
+        services.AddScoped<IBankAccountService, BankAccountService>();
+        services.AddScoped<ICreditCardService, CreditCardService>();
+        services.AddScoped<IInvoiceService, InvoiceService>();
+        services.AddScoped<IInvoicePaymentService, InvoicePaymentService>();
+        services.AddScoped<ICardExpenseService, CardExpenseService>();
         services.AddScoped<IExpenseService, ExpenseService>();
         services.AddScoped<IIncomeService, IncomeService>();
-        services.AddScoped<IInvoiceService, InvoiceService>();
+        services.AddScoped<ITransferService, TransferService>();
         #endregion
 
         #region Repositories
@@ -38,7 +43,7 @@ public static class DependencyInjectionConfig
         #endregion
 
         #region AutoMapper
-        services.AddAutoMapper(typeof(EntityMappingProfile).Assembly);
+        services.AddAutoMapper(typeof(MappingProfile).Assembly);
         #endregion
     }
 }

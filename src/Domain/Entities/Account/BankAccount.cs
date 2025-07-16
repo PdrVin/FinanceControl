@@ -9,4 +9,8 @@ public class BankAccount : EntityBase
     public decimal CurrentBalance { get; set; }
     public decimal ExpectedBalance { get; set; }
     public bool IsActive { get; set; }
+    public ICollection<CardExpense> CardExpenses { get; set; }
+    public ICollection<Expense> Expenses { get; set; }
+    public ICollection<Income> Incomes { get; set; }
+    public ICollection<Transfer> Transfers { get; set; }
 }

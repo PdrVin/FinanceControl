@@ -15,6 +15,7 @@ public class CardExpenseRepository : Repository<CardExpense>, ICardExpenseReposi
     {
         return await Entities
             .Where(ce => ce.CreditCardId == creditCardId)
+            .Include(ce => ce.BankAccount)
             .Include(ce => ce.CreditCard)
             .Include(ce => ce.Invoice)
             .AsNoTracking()
@@ -25,6 +26,7 @@ public class CardExpenseRepository : Repository<CardExpense>, ICardExpenseReposi
     {
         return await Entities
             .Where(ce => ce.InvoiceId == invoiceId)
+            .Include(ce => ce.BankAccount)
             .Include(ce => ce.CreditCard)
             .Include(ce => ce.Invoice)
             .AsNoTracking()

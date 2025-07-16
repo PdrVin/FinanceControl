@@ -12,7 +12,7 @@ public class Expense : EntityBase
     public ExpenseCategory Category { get; set; }
     public bool IsPaid { get; set; }
 
-    public Guid? BankAccountId { get; set; }
+    public Guid BankAccountId { get; set; }
     public BankAccount? BankAccount { get; set; }
 
 
@@ -24,9 +24,9 @@ public class Expense : EntityBase
         decimal amount,
         ExpenseCategory category,
         DateTime date,
+        Guid bankAccountId,
         PayType type = PayType.Pix,
-        bool isPaid = false,
-        Guid? bankAccountId = null
+        bool isPaid = false
     )
     {
         if (string.IsNullOrWhiteSpace(description))

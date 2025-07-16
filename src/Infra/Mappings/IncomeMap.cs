@@ -32,7 +32,7 @@ public class IncomeMap : IEntityTypeConfiguration<Income>
             .IsRequired();
 
         builder.HasOne(e => e.BankAccount)
-            .WithMany()
+            .WithMany(e => e.Incomes)
             .HasForeignKey(e => e.BankAccountId)
             .IsRequired(false);
 

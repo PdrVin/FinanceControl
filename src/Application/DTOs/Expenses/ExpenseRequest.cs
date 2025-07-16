@@ -24,5 +24,5 @@ public class ExpenseRequest
 
     public bool IsPaid { get; set; } = false;
 
-    public Guid? BankAccountId { get; set; }
+    public Guid BankAccountId { get; set; }
 }

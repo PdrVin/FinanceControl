@@ -25,6 +25,11 @@ public class CardExpenseMap : IEntityTypeConfiguration<CardExpense>
             .IsRequired()
             .HasConversion<string>();
 
+        builder.HasOne(e => e.BankAccount)
+            .WithMany(c => c.CardExpenses)
+            .HasForeignKey(e => e.BankAccountId)
+            .IsRequired();
+
         builder.HasOne(e => e.CreditCard)
             .WithMany(c => c.CardExpenses)
             .HasForeignKey(e => e.CreditCardId)
