@@ -1,12 +1,15 @@
 ﻿using Application.Interfaces.Base;
 using Domain.Entities.Base;
 using Domain.Interfaces.Base;
-using AutoMapper; 
+using AutoMapper;
 
 namespace Application.Services.Base;
 
-public class Service<TDto, TEntity> : IService<TDto, TEntity>
+public class Service<TRequest, TResponse, TEntity>
+    : IService<TRequest, TResponse, TEntity>
         where TEntity : class, IEntity
+        where TRequest : class
+        where TResponse : class
 {
     private readonly IRepository<TEntity> _repository;
     private readonly IUnitOfWork _unitOfWork;
@@ -23,25 +26,34 @@ public class Service<TDto, TEntity> : IService<TDto, TEntity>
         _mapper = mapper;
     }
 
-    public async Task<IEnumerable<TEntity>> GetAllAsync()
+    public async Task<IEnumerable<TResponse>> GetAllAsync()
     {
-        return await _repository.GetAllAsync();
+        var entities = await _repository.GetAllAsync();
+        return _mapper.Map<IEnumerable<TResponse>>(entities);
     }
 
-    public async Task<TEntity> GetByIdAsync(Guid id)
+    public async Task<TResponse> GetByIdAsync(Guid id)
     {
-        return await _repository.GetByIdAsync(id);
+        var entity = await _repository.GetByIdAsync(id);
+        return _mapper.Map<TResponse>(entity);
     }
 
-    public async Task AddAsync(TEntity entity)
+    public async Task AddAsync(TRequest request)
     {
+        var entity = _mapper.Map<TEntity>(request);
+
         await _repository.SaveAsync(entity);
         await _unitOfWork.CommitAsync();
     }
 
-    public async Task UpdateAsync(TEntity entity)
+    public async Task UpdateAsync(Guid id, TRequest request)
     {
-        _repository.Update(entity);
+        var existingEntity = await _repository.GetByIdAsync(id)
+            ?? throw new KeyNotFoundException($"Entity with id {id} not found.");
+
+        _mapper.Map(request, existingEntity);
+
+        _repository.Update(existingEntity);
         await _unitOfWork.CommitAsync();
         await Task.CompletedTask;
     }

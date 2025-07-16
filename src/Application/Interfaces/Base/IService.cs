@@ -2,13 +2,15 @@
 
 namespace Application.Interfaces.Base;
 
-public interface IService<TDto, TEntity>
+public interface IService<TRequest, TResponse, TEntity>
     where TEntity : IEntity
+    where TRequest : class
+    where TResponse : class
 {
-    Task<IEnumerable<TEntity>> GetAllAsync();
-    Task<TEntity> GetByIdAsync(Guid id);
-    Task AddAsync(TEntity entity);
-    Task UpdateAsync(TEntity entity);
+    Task<IEnumerable<TResponse>> GetAllAsync();
+    Task<TResponse> GetByIdAsync(Guid id);
+    Task AddAsync(TRequest request);
+    Task UpdateAsync(Guid id, TRequest request);
     Task DeleteAsync(Guid id);
     Task<int> CountAsync();
 }
