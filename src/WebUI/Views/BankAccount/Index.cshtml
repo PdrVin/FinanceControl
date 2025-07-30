@@ -1,0 +1,422 @@
+﻿@using Application.DTOs.BankAccounts
+@model IEnumerable<BankAccountResponse>
+@{
+    ViewData["Title"] = "Contas";
+    int currentYear = ViewBag.CurrentYear ?? DateTime.Now.Year;
+    int currentMonth = ViewBag.CurrentMonth ?? DateTime.Now.Month;
+}
+
+<style>
+    /* Variáveis CSS para cores customizadas, facilitando o reuso e a manutenção */
+    :root {
+        --purple-primary: #6a1aef; /* Roxo principal da imagem */
+        --purple-light: #8D56F0; /* Roxo mais claro para saldo previsto */
+        --green-wallet: #4CAF50; /* Verde para Carteira */
+        --purple-nubank: #8A05BE; /* Roxo Nubank */
+        --green-picpay: #21C25E; /* Verde PicPay */
+        --blue-default-bank: #007bff; /* Azul padrão para outros bancos */
+        --gray-background-light: #f0f2f5; /* Fundo claro sutil */
+        --text-dark-custom: #333; /* Texto escuro geral */
+        --text-secondary-custom: #6c757d; /* Cinza mais escuro para texto secundário */
+        --border-light-custom: #dee2e6; /* Borda clara sutil */
+    }
+
+    /* Estilos globais/body */
+    body {
+        color: var(--text-dark-custom); /* Cor do texto geral */
+    }
+
+    /* Cards gerais: Mantém flexbox e altura para alinhamento uniforme */
+    .card {
+        border: #fff;
+        border-radius: 12px; /* Bootstrap rounded-3 é geralmente 0.5rem, mantive 12px para precisão */
+        height: 100%; /* Para cards na mesma linha terem a mesma altura */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    /* Cores de texto customizadas, mantidas para tons específicos */
+    .text-success-custom {
+        color: var(--bs-success) !important;
+    }
+    .text-danger-custom {
+        color: var(--bs-danger) !important;
+    }
+    .text-secondary-custom {
+        color: var(--text-secondary-custom) !important;
+        font-size: 0.9rem; /* small text */
+    }
+
+    /* Botão "ADICIONAR DESPESA": Cor de borda/texto customizada */
+    .btn-outline-custom {
+        color: var(--purple-primary);
+        border-color: var(--purple-primary);
+        background-color: transparent;
+        font-weight: 500;
+    }
+    .btn-outline-custom:hover {
+        background-color: var(--purple-primary);
+        color: var(--bs-white);
+    }
+
+    /* Estilos para os círculos de ícone dentro dos cards de conta */
+    .icon-wrapper {
+        width: 40px;
+        height: 40px;
+        font-size: 1.5rem;
+    }
+    /* Cores de fundo customizadas para os ícones */
+    .icon-wrapper.bg-primary-light { background-color: var(--purple-primary); }
+    .icon-wrapper.bg-wallet { background-color: var(--green-wallet); }
+    .icon-wrapper.bg-nubank { background-color: var(--purple-nubank); }
+    .icon-wrapper.bg-picpay { background-color: var(--green-picpay); }
+    .icon-wrapper.bg-default-bank { background-color: var(--blue-default-bank); }
+    
+    /* Estilos específicos para os cards de resumo lateral (Saldo Atual/Previsto) */
+    .balance-summary .card {
+        border: 1px solid var(--bs-white);
+    }
+    .balance-summary .icon-circle-summary {
+        width: 50px;
+        height: 50px;
+        font-size: 2rem;
+    }
+    /* Cores de fundo customizadas para os ícones de resumo */
+    .balance-summary .icon-circle-summary.bg-purple-summary { background-color: var(--purple-primary); }
+    .balance-summary .icon-circle-summary.bg-light-purple-summary { background-color: var(--purple-light); }
+
+    /* Dropdown de mês/ano */
+    .btn-month-year {
+        border: 1px solid var(--border-light-custom);
+        font-weight: 500;
+    }
+    .btn-month-year:hover {
+        background-color: var(--gray-background-light);
+        border-color: var(--bs-gray-400);
+    }
+    .year-nav .bi {
+        color: var(--purple-primary);
+    }
+    .month-link {
+        color: var(--text-secondary-custom);
+        border: 1px solid var(--bs-gray-200);
+        transition: all 0.2s ease-in-out;
+    }
+    .month-link.active, .month-link.btn-primary {
+        background-color: var(--purple-primary);
+        border-color: var(--purple-primary);
+        color: var(--bs-white) !important;
+    }
+    .month-link.btn-outline-primary:hover {
+        background-color: var(--purple-primary);
+        color: var(--bs-white);
+    }
+    .btn-secondary-custom {
+        background-color: var(--bs-gray-200);
+        border-color: var(--bs-gray-200);
+        color: var(--text-secondary-custom);
+    }
+    .btn-secondary-custom:hover {
+        background-color: var(--bs-gray-300);
+        border-color: var(--bs-gray-300);
+    }
+    .btn-primary-custom {
+        background-color: var(--purple-primary);
+        border-color: var(--purple-primary);
+        color: var(--bs-white);
+    }
+    .btn-primary-custom:hover {
+        background-color: var(--purple-light);
+        border-color: var(--purple-light);
+    }
+
+    /* Ícones de ação do cabeçalho */
+    .header-action-icon {
+        color: var(--purple-primary);
+        font-size: 1.8rem;
+    }
+    .header-action-icon:hover {
+        color: var(--purple-light);
+    }
+
+    /* Paginação */
+    .pagination .page-item .page-link {
+        color: var(--purple-primary);
+        border: 1px solid var(--border-light-custom);
+        background-color: var(--bs-white);
+    }
+    .pagination .page-item.active .page-link {
+        background-color: var(--purple-primary);
+        border-color: var(--purple-primary);
+        color: var(--bs-white);
+    }
+    .pagination .page-item.disabled .page-link {
+        color: var(--bs-gray-500);
+        border-color: var(--border-light-custom);
+    }
+</style>
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 bg-white rounded-3 px-4 py-3 shadow-sm">
+        <h1 class="mb-0">Contas</h1>
+
+        <div class="d-flex align-items-center">
+            @* Dropdown do mês/ano *@
+            <div class="position-relative me-3">
+                <button class="btn btn-month-year dropdown-toggle rounded-pill px-3 py-2" type="button" id="monthDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    @Thread.CurrentThread.CurrentCulture.DateTimeFormat.GetMonthName(currentMonth)
+                </button>
+                <div class="dropdown-menu p-3 shadow-sm rounded-3 border" aria-labelledby="monthDropdown" style="min-width: 250px;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <a href="#" class="btn btn-link year-nav" data-year-change="-1">
+                            <i class="bi bi-chevron-left"></i></a>
+                        <h5 id="selectedYear" class="mb-0 fw-semibold">@currentYear</h5>
+                        <a href="#" class="btn btn-link year-nav" data-year-change="1">
+                            <i class="bi bi-chevron-right"></i></a>
+                    </div>
+                    <div class="row row-cols-3 g-2 text-center" id="monthGrid">
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            string monthName = new DateTime(currentYear, m, 1).ToString("MMM").ToUpper();
+                            string activeClass = (m == currentMonth) ? "active" : "";
+                            <div class="col">
+                                <a href="#" class="btn btn-sm w-100 month-link rounded-2 @activeClass" data-month="@m">@monthName</a>
+                            </div>
+                        }
+                    </div>
+                    <div class="d-flex justify-content-between mt-3">
+                        <button class="btn btn-sm btn-secondary-custom rounded-2" id="cancelBtn">CANCELAR</button>
+                        <a href="#" class="btn btn-sm btn-primary-custom rounded-2" id="currentMonthBtn">MÊS ATUAL</a>
+                    </div>
+                </div>
+            </div>
+
+            <a href="@Url.Action("Create", "BankAccount")" class="btn btn-link header-action-icon me-2" title="Adicionar Nova Conta">
+                <i class="bi bi-plus-circle fs-3"></i>
+            </a>
+            <a href="#" class="btn btn-link header-action-icon me-2" title="Gráficos de Contas">
+                <i class="bi bi-graph-up fs-3"></i>
+            </a>
+            <a href="#" class="btn btn-link header-action-icon" title="Configurações">
+                <i class="bi bi-gear fs-3"></i>
+            </a>
+        </div>
+    </div>
+    
+    @* Mensagens TempData *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row g-4 align-items-stretch"> 
+        <div class="col-md-9">
+            <div class="row g-4 align-items-stretch">
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card p-4 text-center bg-white shadow-sm d-flex flex-column align-items-center">
+                        <a href="@Url.Action("Create", "BankAccount")" class="text-decoration-none btn h-100 text-dark d-flex flex-column align-items-center justify-content-center">
+                            <div class="icon-wrapper bg-primary-light mb-3 p-4 rounded-circle d-flex align-items-center justify-content-center text-white">
+                                <i class="bi bi-plus fs-2"></i>
+                            </div>
+                            <h4 class="card-title fw-semibold">Nova conta</h4>
+                        </a>
+                    </div>
+                </div>
+
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var account in Model)
+                    {
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 p-4 bg-white shadow-sm">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-wrapper rounded-circle text-white me-3 d-flex align-items-center justify-content-center
+                                            @(account.Name.Contains("Carteira") ? "bg-wallet" :
+                                                account.Name.Contains("Nubank") ? "bg-nubank" :
+                                                account.Name.Contains("PicPay") ? "bg-picpay" :
+                                                "bg-default-bank") ">
+
+                                            @if (account.Name.Contains("Carteira"))
+                                                { <i class="bi bi-wallet2"></i> }
+                                            else if (account.Name.Contains("Nubank"))
+                                                { <i class="bi bi-credit-card"></i> }
+                                            else if (account.Name.Contains("PicPay"))
+                                                { <i class="bi bi-qr-code"></i> }
+                                            else { <i class="bi bi-bank"></i> }
+                                        </div>
+                                        <h5 class="card-title mb-0 fw-semibold">@account.Name</h5>
+                                    </div>
+
+                                    <div class="dropdown">
+                                        <button class="btn btn-link text-secondary p-0" type="button" id="dropdownMenuButton_@account.Id" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+
+                                        <ul class="dropdown-menu p-2 shadow-sm rounded-3 border" 
+                                            aria-labelledby="dropdownMenuButton_@account.Id">
+                                            <li>
+                                                <a href="@Url.Action("Edit", "BankAccount", new { id = account.Id })" class="dropdown-item px-3 py-2 rounded-2 text-dark">Editar</a>
+                                            </li> 
+                                            <li>
+                                                <a href="@Url.Action("Details", "BankAccount", new { id = account.Id })"
+                                                class="dropdown-item px-3 py-2 rounded-2 text-dark">Detalhes</a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <form asp-controller="BankAccount" asp-action="Delete" method="post" onsubmit="return confirm('Tem certeza que deseja excluir esta conta?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@account.Id" />
+                                                    <button type="submit" class="dropdown-item text-danger px-3 py-2 rounded-2">Excluir</button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <p class="card-text text-secondary-custom mb-1">Saldo atual</p>
+                                <h4 class="mb-2 @(account.CurrentBalance >= 0 ? "text-success-custom" : "text-danger-custom") fw-semibold">
+                                    R$ @account.CurrentBalance.ToString("N2")
+                                </h4>
+
+                                <p class="card-text text-secondary-custom mb-1">
+                                    Saldo previsto
+                                    <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="top" title="Considera despesas futuras"></i>
+                                </p>
+
+                                <h5 class="mb-3 @(account.CurrentBalance >= 0 ? "text-success-custom" : "text-danger-custom") fw-semibold">
+                                    R$ @account.CurrentBalance.ToString("N2")
+                                </h5>
+                                
+                                <div class="mt-auto pt-3">
+                                    <a href="@Url.Action("Create", "Expense", new { bankAccountId = account.Id })" class="btn btn-outline-custom btn-sm w-100">ADICIONAR DESPESA</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="alert alert-info bg-white border text-center shadow-sm" role="alert">
+                            Nenhuma conta bancária cadastrada. Crie uma para começar!
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            <div class="d-flex justify-content-center mt-4">
+                <nav aria-label="Paginação de contas">
+                    <ul class="pagination">
+                        <li class="page-item disabled"><a class="page-link" href="#">&lt;</a></li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">&gt;</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="row g-4 balance-summary">
+
+                @* Saldo Atual *@
+                <div>
+                    <div class="card p-3 bg-white shadow-sm">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle-summary bg-purple-summary me-3 px-2 rounded-circle d-flex align-items-center justify-content-center text-white">
+                                <i class="bi bi-cash-stack"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1 text-dark">Saldo atual</h5>
+                                <p class="fs-4 mb-0 @(Model!.Sum(a => a.CurrentBalance) >= 0 ? "text-success-custom" : "text-danger-custom") fw-semibold">
+                                    R$ @Model!.Sum(a => a.CurrentBalance).ToString("N2")
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* Saldo Previsto *@
+                <div>
+                    <div class="card p-3 bg-white shadow-sm"> @* Adicionado bg-white e shadow-sm *@
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle-summary bg-purple-summary me-3 px-2 rounded-circle d-flex align-items-center justify-content-center text-white">
+                                <i class="bi bi-piggy-bank"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1 text-dark">Saldo previsto</h5>
+                                <p class="fs-4 mb-0 @(Model!.Sum(a => a.CurrentBalance) >= 0 ? "text-success-custom" : "text-danger-custom") fw-semibold">
+                                    R$ @Model!.Sum(a => a.ExpectedBalance).ToString("N2")
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Inicializa tooltips do Bootstrap
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+
+            // --- Lógica para o Dropdown de Mês/Ano (repetido do Home/Index para consistência) ---
+            const monthDropdown = document.getElementById('monthDropdown');
+            const yearNavs = document.querySelectorAll('.year-nav');
+            const monthLinks = document.querySelectorAll('.month-link');
+            const currentMonthBtn = document.getElementById('currentMonthBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const selectedYearEl = document.getElementById('selectedYear');
+
+            let currentYear = @Html.Raw(currentYear);
+            let selectedMonth = @Html.Raw(currentMonth);
+
+            yearNavs.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const change = parseInt(this.dataset.yearChange);
+                    currentYear += change;
+                    selectedYearEl.textContent = currentYear;
+                });
+            });
+
+            monthLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const month = this.dataset.month;
+                    // Redireciona para o BankAccounts Index com os parâmetros de ano e mês
+                    window.location.href = `/BankAccounts/Index?year=${currentYear}&month=${month}`;
+                });
+            });
+
+            currentMonthBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = `/BankAccounts/Index`; // Redireciona para o mês e ano atuais
+            });
+
+            cancelBtn.addEventListener('click', function() {
+                const dropdown = bootstrap.Dropdown.getInstance(monthDropdown) || new bootstrap.Dropdown(monthDropdown);
+                dropdown.hide();
+            });
+        });
+    </script>
+}

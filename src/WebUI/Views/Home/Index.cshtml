@@ -1,7 +1,362 @@
-﻿@{
-    ViewData["Title"] = "Início";
+﻿@model WebUI.ViewModels.Dashboard.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Dashboard</h1>
+        
+        @* Ajuste Período *@
+        <div class="position-relative">
+            <button class="btn bg-white border-secondary-subtle dropdown-toggle me-2 shadow" type="button" id="monthDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                @Thread.CurrentThread.CurrentCulture.DateTimeFormat.GetMonthName(ViewBag.CurrentMonth as int? ?? DateTime.Now.Month)
+            </button>
+            <div class="dropdown-menu p-3" aria-labelledby="monthDropdown" style="min-width: 250px;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <a href="#" class="btn btn-link year-nav" data-year-change="-1">
+                        <i class="bi bi-chevron-left"></i></a>
+                    <h5 id="selectedYear">@ViewBag.CurrentYear</h5>
+                    <a href="#" class="btn btn-link year-nav" data-year-change="1">
+                        <i class="bi bi-chevron-right"></i></a>
+                </div>
+                <div class="row row-cols-3 g-2 text-center" id="monthGrid">
+                    @for (int m = 1; m <= 12; m++)
+                    {
+                        string monthName = new DateTime(ViewBag.CurrentYear, m, 1).ToString("MMM").ToUpper();
+                        string activeClass = (m == (ViewBag.CurrentMonth as int? ?? DateTime.Now.Month)) ? "btn-primary" : "btn-outline-primary";
+                        <div class="col">
+                            <a href="#" class="btn btn-sm w-100 month-link @activeClass" data-month="@m">@monthName</a>
+                        </div>
+                    }
+                </div>
+                <div class="d-flex justify-content-between mt-3">
+                    <button class="btn btn-secondary btn-sm" id="cancelBtn">CANCELAR</button>
+                    <a href="#" class="btn btn-primary btn-sm" id="currentMonthBtn">MÊS ATUAL</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Indicadores *@
+    <div class="row g-4 mb-4">
+
+        @* Saldo Atual *@
+        <div class="col-md-3">
+            <div class="card p-4 h-100 rounded shadow">
+                <div class="d-flex justify-content-between">
+                    <div class="d-flex flex-column">
+                        <h6 class="text-secondary h-100 fw-normal">Saldo atual</h6>
+                        <h3 class="my-0" style="color: @(Model.CurrentBalance >= 0 ? "#198754" : "#dc3545");">
+                            R$ @Model.CurrentBalance.ToString("N2")
+                        </h3>
+                    </div>
+                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
+                        style="width: 45px; height: 45px;">
+                        <i class="bi bi-bank fs-4 text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Receitas *@
+        <div class="col-md-3">
+            <div class="card p-4 h-100 rounded shadow">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-secondary fw-normal">Receitas</h6>
+                        <h3 class="mt-2 text-success">
+                            R$ @Model.MonthlyIncome.ToString("N2")
+                        </h3>
+                    </div>
+                    <div class="bg-success rounded-circle d-flex align-items-center justify-content-center"
+                        style="width: 45px; height: 45px;">
+                        <i class="bi bi-arrow-up-circle fs-4 text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Despesas *@
+        <div class="col-md-3">
+            <div class="card p-4 h-100 rounded shadow">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-secondary fw-normal">Despesas</h6>
+                        <h3 class="mt-2 text-danger">
+                            R$ @Model.MonthlyExpense.ToString("N2")
+                        </h3>
+                    </div>
+                    <div class="bg-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-arrow-down-circle fs-4 text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Cartão de Crédito *@
+        <div class="col-md-3">
+            <div class="card p-4 h-100 rounded shadow">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-secondary fw-normal">Cartão de Crédito</h6>
+                        <h3 class="mt-2 text-danger">
+                            R$ @Model.MonthlyCardExpense.ToString("N2")
+                        </h3>
+                    </div>
+                    <div class="bg-info rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-credit-card-2-front-fill fs-4 text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Receitas Por Categoria *@
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card p-4 h-100 rounded shadow">
+                <h5 class="card-title mb-3">Receitas por categoria</h5>
+                <div class="d-flex justify-content-center align-items-center position-relative" style="height: 300px;">
+                    <canvas id="incomeDoughnutChart"></canvas>
+                    <div class="position-absolute text-center">
+                        <h4 class="fw-bold">R$ @Model.MonthlyIncome.ToString("N2")</h4>
+                        <span class="text-secondary">Total</span>
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="@Url.Action("Index", "Income")" class="btn btn-link text-decoration-none">VER MAIS <i class="bi bi-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+
+        @* Despesas Por Categoria *@
+        <div class="col-md-6">
+            <div class="card p-4 h-100 rounded shadow">
+                <h5 class="card-title mb-3">Despesas por categoria</h5>
+                <div class="d-flex justify-content-center align-items-center position-relative" style="height: 300px;">
+                    <canvas id="expenseDoughnutChart"></canvas>
+                    <div class="position-absolute text-center">
+                        <h4 class="fw-bold">R$ @Model.MonthlyExpense.ToString("N2")</h4>
+                        <span class="text-secondary">Total</span>
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="@Url.Action("Index", "Expense")" class="btn btn-link text-decoration-none">VER MAIS <i class="bi bi-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    @* Balanço Mensal *@
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card p-4 h-100 rounded shadow">
+                <h5 class="card-title mb-3">Balanço mensal</h5>
+                <div class="d-flex align-items-center justify-content-evenly p-4">
+                    @* Colunas *@
+                    <div class="d-flex align-items-center">
+                        <div style="width: 20px; height: 100px; background-color: #198754; border-radius: 5px; margin-right: 15px;"></div>
+                        <div style="width: 20px; height: 120px; background-color: #dc3545; border-radius: 5px;"></div>
+                    </div>
+                    @* Calculo *@
+                    <div class="text-center">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-success fw-bold">Receitas:</span>
+                            <span class="text-success">R$ @Model.MonthlySummary.TotalIncomes.ToString("N2")</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-danger fw-bold">Despesas:</span>
+                            <span class="text-danger">R$ @Model.MonthlySummary.TotalExpenses.ToString("N2")</span>
+                        </div>
+                        <div class="mt-2 border-top pt-2">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold">Balanço:</span>
+                                <span style="color:
+                                    @(Model.MonthlySummary.MonthlyBalance >= 0 ? "#198754" : "#dc3545");">
+                                    R$ @Model.MonthlySummary.MonthlyBalance.ToString("N2")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* <div class="col-md-6">
+            <div class="card p-4 h-100 rounded shadow">
+                <h5 class="card-title mb-3">Balanço (Receitas - Despesas) nos últimos 6 meses</h5>
+                <div class="p-3">
+                    <canvas id="monthlyBalanceChart"></canvas>
+                </div>
+            </div>
+        </div> *@
+    </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- Lógica para o Dropdown de Mês/Ano ---
+        const monthDropdown = document.getElementById('monthDropdown');
+        const yearNavs = document.querySelectorAll('.year-nav');
+        const monthLinks = document.querySelectorAll('.month-link');
+        const currentMonthBtn = document.getElementById('currentMonthBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const selectedYearEl = document.getElementById('selectedYear');
+
+        let currentYear = parseInt(selectedYearEl.textContent);
+        let selectedMonth = @Html.Raw(Json.Serialize(ViewBag.CurrentMonth));
+
+        yearNavs.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const change = parseInt(this.dataset.yearChange);
+                currentYear += change;
+                selectedYearEl.textContent = currentYear;
+            });
+        });
+
+        monthLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const month = this.dataset.month;
+                window.location.href = `/Home/Index?year=${currentYear}&month=${month}`;
+            });
+        });
+
+        currentMonthBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.location.href = `/Home/Index`; // Redireciona para o mês e ano atuais
+        });
+
+        cancelBtn.addEventListener('click', function() {
+            const dropdown = new bootstrap.Dropdown(monthDropdown);
+            dropdown.hide();
+        });
+
+
+        // --- Lógica para os gráficos (Chart.js) ---
+        
+        // Gráfico de Rosca de Receitas
+        const incomeCtx = document.getElementById('incomeDoughnutChart').getContext('2d');
+        const incomeData = @Html.Raw(Json.Serialize(Model.IncomeByCategory));
+        new Chart(incomeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(incomeData),
+                datasets: [{
+                    data: Object.values(incomeData),
+                    backgroundColor: [
+                        '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107',
+                        '#FF9800', '#FF5722', '#F44336', '#E91E63', '#9C27B0'
+                    ],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '80%',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Rosca de Despesas
+        const expenseCtx = document.getElementById('expenseDoughnutChart').getContext('2d');
+        const expenseData = @Html.Raw(Json.Serialize(Model.ExpenseByCategory));
+        new Chart(expenseCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(expenseData),
+                datasets: [{
+                    data: Object.values(expenseData),
+                    backgroundColor: [
+                        '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5',
+                        '#2196F3', '#03A9F4', '#00BCD4', '#009688', '#4CAF50',
+                        '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800'
+                    ],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '80%',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Gráfico de Balanço dos Últimos 6 Meses
+        const monthlyBalanceCtx = document.getElementById('monthlyBalanceChart').getContext('2d');
+        const monthlyBalanceData = @Html.Raw(Json.Serialize(Model.BalancesLastSixMonths));
+        const labels = monthlyBalanceData.map(item => item.MonthYear);
+        const data = monthlyBalanceData.map(item => item.Balance);
+
+        new Chart(monthlyBalanceCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Balanço Mensal',
+                    data: data,
+                    backgroundColor: data.map(balance => balance >= 0 ? '#198754' : '#dc3545'),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>

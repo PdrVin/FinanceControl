@@ -1,111 +1,210 @@
-@using Application.DTOs
+@using Application.DTOs.Expenses
 @using Domain.Enums
+@using Application.DTOs.BankAccounts
 
-@model ExpenseDto
+@model ExpenseRequest
 @{
     ViewData["Title"] = "Nova Despesa";
 }
 
+<style>
+    /* Estilos customizados para o formulário no TEMA CLARO */
+    .container-fluid.p-0 {
+        max-width: 600px; /* Limita a largura do formulário para melhor visualização */
+        margin: auto; /* Centraliza */
+    }
+    .card {
+        background-color: #ffffff; /* Fundo branco para o card */
+        color: #343a40; /* Cor do texto escuro */
+        border: 1px solid #dee2e6; /* Borda clara */
+    }
+    .bg-header-custom { /* Nova classe para o cabeçalho */
+        background-color: #f8f9fa !important; /* Cor de fundo clara para o cabeçalho */
+        color: #343a40; /* Cor do texto escuro */
+        border-bottom: 1px solid #dee2e6;
+    }
+    .border-bottom-custom { /* Nova classe para bordas */
+        border-color: #e9ecef !important; /* Cor da borda mais clara */
+    }
+    .form-control, .form-select {
+        background-color: #f8f9fa; /* Fundo dos inputs levemente cinza */
+        color: #495057; /* Texto dos inputs */
+        border-color: #ced4da; /* Borda dos inputs */
+    }
+    .form-control::placeholder {
+        color: #adb5bd; /* Cor do placeholder */
+    }
+    .form-control:focus, .form-select:focus {
+        background-color: #ffffff; /* Fundo dos inputs ao focar */
+        color: #495057;
+        border-color: #80bdff; /* Cor da borda ao focar */
+        box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+    }
+    .input-group-text {
+        background-color: #e9ecef; /* Fundo do R$ */
+        color: #495057; /* Texto do R$ */
+        border-color: #ced4da;
+    }
+    .btn-close {
+        filter: none; /* Remove o invert para ser visível em fundo claro */
+        color: #000; /* Garante que o X é preto */
+        opacity: 0.5; /* Opacidade padrão do Bootstrap */
+    }
+    .btn-close:hover {
+        opacity: 0.75;
+    }
+    .text-danger {
+        color: #dc3545 !important;
+    }
+    .text-success {
+        color: #28a745 !important;
+    }
+    .text-primary {
+        color: #007bff !important; /* Cor dos ícones */
+    }
+    hr {
+        border-top: 1px solid #e9ecef; /* Cor da linha divisória clara */
+    }
+    /* Estilo para o ícone customizado de círculo ao lado do input */
+    .input-icon-wrapper {
+        display: flex;
+        align-items: center;
+    }
+    .input-icon-wrapper .icon-circle {
+        min-width: 38px; /* Largura fixa para o círculo do ícone */
+        height: 38px; /* Altura fixa para o círculo do ícone */
+        background-color: #007bff; /* Cor primária para o círculo */
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem; /* Tamanho do ícone */
+        margin-right: 0.75rem; /* Espaçamento à direita do ícone */
+    }
+</style>
+
 <div class="container-fluid p-0">
-    @* Cabeçalho do Modal/Página (usando classes Bootstrap para layout) *@
-    <div class="d-flex justify-content-between align-items-center py-3 px-4 bg-light border-bottom rounded-top">
+    @* Cabeçalho do Modal/Página *@
+    <div class="d-flex justify-content-between align-items-center py-3 px-4 bg-header-custom rounded-top">
         <h2 class="h5 mb-0 fw-bold">Nova Despesa</h2>
-        <button type="button" class="btn-close" aria-label="Fechar"></button>
+        @* Botão de fechar - pode redirecionar ou fechar um modal JS *@
+        <a href="@Url.Action("Index", "Expenses")" class="btn-close" aria-label="Fechar"></a>
     </div>
 
     @* Formulário Principal *@
     <div class="card rounded-0 rounded-bottom border-0 shadow-sm">
         <div class="card-body">
+
             <form asp-controller="Expense" asp-action="Create" method="post" id="expenseForm">
                 @Html.AntiForgeryToken() @* Adiciona o token anti-CSRF para segurança *@
 
                 @* Seção de Valor *@
-                <div class="mb-3 d-flex align-items-center">
-                    <div class="me-3 text-primary fs-5">
-                        <i class="bi bi-calculator"></i> @* Ícone de Calculadora *@
+                <div class="mb-3 input-icon-wrapper">
+                    <div class="icon-circle">
+                        <i class="bi bi-currency-dollar"></i> @* Ícone de Moeda *@
                     </div>
-                    <div class="input-group">
+                    <div class="input-group flex-grow-1"> @* flex-grow-1 para preencher o espaço restante *@
                         <span class="input-group-text">R$</span>
-                        <input type="text" asp-for="Amount" class="form-control w-50" placeholder="0,00" />
+                        <input type="text" id="Amount" name="Amount" class="form-control" placeholder="0,00" value="@(Model?.Amount.ToString("N2", System.Globalization.CultureInfo.GetCultureInfo("pt-BR")) ?? "0,00")" />
                     </div>
                 </div>
-                @Html.ValidationMessageFor(x => x.Amount, "Deve ter um valor maior que 0", new { @class = "hidden text-danger d-block ms-5" })
+                @Html.ValidationMessageFor(x => x.Amount, null, new { @class = "text-danger d-block ms-5" })
 
-                <hr class="my-3" />
-
-                @* Seção "Foi paga" (agora um dropdown para o Enum Status) *@
-                <div class="mb-3 d-flex align-items-center">
-                    <div class="me-3 text-primary fs-5">
-                        <i class="bi bi-check-circle"></i> @* Ícone de Checkmark *@
-                    </div>
-                    <select asp-for="Status" class="form-select w-50"> @* Ajuste a largura conforme necessário *@
-                        @foreach (var status in Enum.GetValues(typeof(Status)).Cast<Status>())
-                        {
-                            <option value="@status">@status.ToString()</option>
-                        }
-                    </select>
-                </div>
-                @Html.ValidationMessageFor(x => x.Status, null, new { @class = "text-danger d-block ms-5" })
-
-                <hr class="my-3" />
+                <hr class="my-3 border-bottom-custom" />
 
                 @* Seção de Data *@
-                <div class="mb-3 d-flex align-items-center">
-                    <div class="me-3 text-primary fs-5">
+                <div class="mb-3 input-icon-wrapper">
+                    <div class="icon-circle">
                         <i class="bi bi-calendar"></i> @* Ícone de Calendário *@
                     </div>
-                    <input type="date" asp-for="Date" class="form-control w-50"/>
+                    <input type="date" asp-for="Date" class="form-control" value="@(Model?.Date.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd"))" />
                 </div>
+                @Html.ValidationMessageFor(x => x.Date, null, new { @class = "text-danger d-block ms-5" })
 
-                <hr class="my-3" />
+                <hr class="my-3 border-bottom-custom" />
 
                 @* Seção de Descrição *@
-                <div class="mb-3 d-flex align-items-center">
-                    <div class="me-3 text-primary fs-5">
+                <div class="mb-3 input-icon-wrapper">
+                    <div class="icon-circle">
                         <i class="bi bi-file-earmark-text"></i> @* Ícone de Documento/Texto *@
                     </div>
-                    <input type="text" asp-for="Description" class="form-control w-50" placeholder="Descrição" />
+                    <input type="text" asp-for="Description" class="form-control" placeholder="Descrição" />
                 </div>
+                @Html.ValidationMessageFor(x => x.Description, null, new { @class = "text-danger d-block ms-5" })
 
-                <hr class="my-3" />
+                <hr class="my-3 border-bottom-custom" />
 
                 @* Seção de Categoria *@
-                <div class="mb-3 d-flex align-items-center">
-                    <div class="me-3 text-primary fs-5">
-                        <i class="bi bi-book"></i> @* Ícone de Livro/Categoria *@
+                <div class="mb-3 input-icon-wrapper">
+                    <div class="icon-circle">
+                        <i class="bi bi-tags"></i> @* Ícone de Tags/Categoria *@
                     </div>
-                    <select asp-for="Category" class="form-select w-50"> @* Ajuste a largura conforme necessário *@
-                        <option value="">Categoria</option>
+                    <select asp-for="Category" class="form-select">
+                        <option value="">Selecione a Categoria</option>
                         @foreach (var catg in Enum.GetValues(typeof(ExpenseCategory)).Cast<ExpenseCategory>())
                         {
                             <option value="@catg">@catg.ToString()</option>
                         }
                     </select>
                 </div>
-                @Html.ValidationMessageFor(x => x.Category, "Nenhuma Categoria selecionada.", new { @class = "text-danger d-block ms-5" })
+                @Html.ValidationMessageFor(x => x.Category, null, new { @class = "text-danger d-block ms-5" })
 
-                <hr class="my-3" />
+                <hr class="my-3 border-bottom-custom" />
 
-                @* Seção de Conta *@
-                <div class="mb-3 d-flex align-items-center">
-                    <div class="me-3 text-primary fs-5">
-                        <i class="bi bi-wallet"></i> @* Ícone de Carteira *@
+                @* Seção de Tipo de Pagamento (PayType) *@
+                <div class="mb-3 input-icon-wrapper">
+                    <div class="icon-circle">
+                        <i class="bi bi-cash-coin"></i> @* Ícone de Dinheiro/Pagamento *@
                     </div>
-                    <select asp-for="Account" class="form-select w-50"> @* Ajuste a largura conforme necessário *@
-                        <option value="">Conta</option>
-                        @foreach (var account in Enum.GetValues(typeof(Account)).Cast<Account>())
+                    <select asp-for="PayType" class="form-select">
+                        <option value="">Selecione o Tipo de Pagamento</option>
+                        @foreach (var payType in Enum.GetValues(typeof(PayType)).Cast<PayType>())
                         {
-                            <option value="@account">@account.ToString()</option>
+                            <option value="@payType">@payType.ToString()</option>
                         }
                     </select>
                 </div>
-                @Html.ValidationMessageFor(x => x.Account, "Nenhuma Conta selecionada.", new { @class = "text-danger d-block ms-5" })
+                @Html.ValidationMessageFor(x => x.PayType, null, new { @class = "text-danger d-block ms-5" })
 
-                <hr class="my-3" />
+                <hr class="my-3 border-bottom-custom" />
+
+                @* Seção de Conta Bancária *@
+                <div class="mb-3 input-icon-wrapper">
+                    <div class="icon-circle">
+                        <i class="bi bi-wallet"></i> @* Ícone de Carteira *@
+                    </div>
+                    <select asp-for="BankAccountId" class="form-select">
+                        <option value="">Selecione a Conta Bancária</option>
+                        @if (ViewBag.BankAccounts != null)
+                        {
+                            foreach (var account in ViewBag.BankAccounts as IEnumerable<BankAccountResponse>)
+                            {
+                                <option value="@account.Id">@account.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+                @Html.ValidationMessageFor(x => x.BankAccountId, null, new { @class = "text-danger d-block ms-5" })
+
+                <hr class="my-3 border-bottom-custom" />
+
+                @* Seção "Foi paga" (bool) *@
+                <div class="mb-3 input-icon-wrapper">
+                    <div class="icon-circle">
+                        <i class="bi bi-check-circle"></i> @* Ícone de Checkmark *@
+                    </div>
+                    <select asp-for="IsPaid" class="form-select">
+                        <option value="false">Pendente</option>
+                        <option value="true">Pago</option>
+                    </select>
+                </div>
+                @Html.ValidationMessageFor(x => x.IsPaid)
+
+                <hr class="my-3 border-bottom-custom" />
 
                 @* Botões de Ação *@
-                <div class="d-flex justify-content-end gap-2 pt-3 border-top mt-3">
-                    @* <button type="button" class="btn btn-secondary">Salvar e Criar Nova</button> *@
+                <div class="d-flex justify-content-end gap-2 pt-3 border-top border-bottom-custom mt-3">
                     <a class="btn btn-secondary" role="button" asp-action="Index">Voltar</a>
                     <button type="submit" class="btn btn-primary">Salvar</button>
                 </div>
@@ -113,3 +212,81 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const amountInput = document.getElementById('Amount');
+
+            // Função para formatar o valor no campo de entrada para o padrão brasileiro
+            function formatCurrency(value) {
+                // Remove tudo que não é dígito e converte para número
+                let num = parseInt(value.replace(/\D/g, ''));
+                if (isNaN(num)) {
+                    return ''; // Retorna string vazia se não for um número válido
+                }
+                // Converte para decimal e formata com 2 casas decimais
+                let formattedValue = (num / 100).toFixed(2);
+                // Troca ponto por vírgula para formato BR e adiciona separadores de milhares
+                formattedValue = formattedValue.replace('.', ',').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+                return formattedValue;
+            }
+
+            // Função para desformatar o valor para o padrão americano antes do submit
+            function unformatCurrency(value) {
+                return value.replace(/\./g, '').replace(',', '.'); // Remove pontos de milhar e troca vírgula por ponto
+            }
+
+            // Aplica a formatação inicial se houver um valor no modelo
+            if (amountInput.value) {
+                amountInput.value = formatCurrency(unformatCurrency(amountInput.value)); // Unformat, then format
+            }
+
+
+            amountInput.addEventListener('input', function(e) {
+                const start = e.target.selectionStart;
+                const end = e.target.selectionEnd;
+                const oldRawValue = e.target.value.replace(/\D/g, ''); // Valor numérico antes da mudança
+                
+                let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é dígito
+
+                if (value === '') {
+                    e.target.value = '';
+                    return;
+                }
+
+                // Garante que pelo menos 3 dígitos para formar o 0,00
+                if (value.length < 3) {
+                    value = value.padStart(3, '0');
+                }
+                
+                value = (parseInt(value) / 100).toFixed(2); // Divide por 100 e formata para 2 casas decimais
+                value = value.replace('.', ','); // Troca ponto por vírgula para formato BR
+                value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.'); // Adiciona pontos para milhares
+                
+                e.target.value = value;
+
+                // Tenta manter o cursor na posição correta
+                const newRawValue = value.replace(/\D/g, '');
+                const diff = newRawValue.length - oldRawValue.length;
+                e.target.setSelectionRange(start + diff, end + diff);
+            });
+
+            // Intercepta o envio do formulário para desformatar o valor
+            document.getElementById('expenseForm').addEventListener('submit', function(e) {
+                const amountValue = amountInput.value;
+                amountInput.value = unformatCurrency(amountValue); // Desformata para enviar ao servidor
+            });
+
+            // Re-formata o campo se a validação falhar e o valor for retornado pelo servidor
+            // (Isso é para quando o formulário é enviado, falha a validação no servidor e retorna a view com o modelo)
+            @if (Model != null && !string.IsNullOrEmpty(Model.Amount.ToString()))
+            {
+                <text>
+                    amountInput.value = formatCurrency('@(Model.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture))');
+                </text>
+            }
+        });
+    </script>
+}

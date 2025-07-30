@@ -1,0 +1,447 @@
+@using Application.DTOs.Transactions
+
+@model Application.DTOs.Transactions.TransactionListDto
+@{
+    ViewData["Title"] = "Transações";
+    int currentYear = ViewBag.CurrentYear;
+    int currentMonth = ViewBag.CurrentMonth;
+    // Agrupar as transações por data para o "Saldo do Final do Dia"
+    var groupedTransactions = Model.Transactions
+    .OrderByDescending(t => t.Date)
+    .GroupBy(t => t.Date.Date)
+    .OrderByDescending(g => g.Key)
+    .ToList();
+}
+
+<style>
+    .balance-summary .card {
+        border: 1px solid #fff;
+    }
+
+    .balance-summary .icon-circle-summary {
+        width: 50px;
+        height: 50px;
+        font-size: 2rem;
+    }
+
+    /* Novos estilos para a linha "Saldo do Final do Dia" */
+    .daily-balance-row {
+        background-color: #f8f9fa;
+        font-weight: bold;
+        border-top: 1px solid #e9ecef;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    /* Estilos para os ícones de categoria/tipo na tabela (integrados com o tema claro) */
+    .category-icon-circle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        color: white;
+        font-size: 0.9rem;
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+
+    .category-icon-circle.expense-icon {
+        background-color: #dc3545;
+    }
+
+    .category-icon-circle.income-icon {
+        background-color: #28a745;
+    }
+
+    .category-icon-circle.transfer-icon {
+        background-color: #007bff;
+    }
+
+    .category-icon-circle.credit-card-icon {
+        background-color: #6f42c1;
+    }
+
+    /* Classes de cor para ícones de situação */
+    .status-icon-ok {
+        color: #28a745;
+    }
+
+    /* Verde para concluído/pago */
+    .status-icon-pending {
+        color: #ffc107;
+    }
+
+    /* Amarelo para pendente */
+    .status-icon-error {
+        color: #dc3545;
+    }
+
+    /* Estilos para o dropdown "Adicionar Nova Transação" (integrados com o tema claro) */
+    #addTransactionDropdown .dropdown-menu {
+        min-width: 200px;
+        background-color: #ffffff;
+        border: 1px solid rgba(0, 0, 0, .15);
+        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .175) !important;
+        border-radius: .5rem;
+    }
+
+    #addTransactionDropdown .dropdown-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        color: #212529;
+        /* Texto escuro nos itens do dropdown */
+    }
+
+    #addTransactionDropdown .dropdown-item:hover {
+        background-color: #e9ecef;
+        color: #007bff;
+    }
+
+    #addTransactionDropdown .dropdown-item i {
+        font-size: 1.2rem;
+        margin-right: 0.75rem;
+        width: 24px;
+        text-align: center;
+    }
+
+    /* As cores dos ícones dentro do dropdown seguem as cores semânticas (danger, success, info, primary) */
+    #addTransactionDropdown .dropdown-item .text-danger {
+        color: #dc3545 !important;
+    }
+
+    #addTransactionDropdown .dropdown-item .text-success {
+        color: #28a745 !important;
+    }
+
+    #addTransactionDropdown .dropdown-item .text-info {
+        color: #17a2b8 !important;
+    }
+
+    /* Usando info para despesa de cartão */
+    #addTransactionDropdown .dropdown-item .text-primary {
+        color: #007bff !important;
+    }
+</style>
+
+<div class="container-fluid w-100">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 bg-white rounded-3 px-4 py-3 shadow-sm">
+        <h1 class="mb-0">Transações</h1>
+        <div class="d-flex align-items-center">
+
+            @* Dropdown do mês/ano - Lógica JS similar ao BankAccounts Index *@
+            <div class="position-relative me-3">
+                <button class="btn border-secondary-subtle dropdown-toggle rounded-pill px-3 py-2" type="button"
+                    id="monthDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    @Model.MonthName @currentYear
+                </button>
+
+                <div class="dropdown-menu p-3 shadow-sm rounded-3 border" aria-labelledby="monthDropdown"
+                    style="min-width: 250px;">
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <a href="#" class="btn btn-link year-nav" data-year-change="-1">
+                            <i class="bi bi-chevron-left"></i></a>
+                        <h5 id="selectedYear" class="mb-0 fw-semibold">@currentYear</h5>
+                        <a href="#" class="btn btn-link year-nav" data-year-change="1">
+                            <i class="bi bi-chevron-right"></i></a>
+                    </div>
+
+                    <div class="row row-cols-3 g-2 text-center" id="monthGrid">
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            string monthName = new DateTime(currentYear, m, 1).ToString("MMM").ToUpper();
+                            string activeClass = (m == currentMonth) ? "active" : "";
+                            <div class="col">
+                                <a href="#" class="btn btn-sm w-100 month-link rounded-2 @activeClass"
+                                    data-month="@m">@monthName</a>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-3">
+                        <button class="btn btn-sm btn-secondary rounded-2" id="cancelBtn">Cancelar</button>
+                        <a href="#" class="btn btn-sm btn-primary rounded-2" id="currentMonthBtn">Mês Atual</a>
+                    </div>
+                </div>
+            </div>
+
+            @* Botão "Adicionar Nova Transação" com Dropdown *@
+            <div class="dropdown" id="addTransactionDropdown">
+                <button class="btn btn-link header-action-icon me-2" type="button" id="addTransactionButton"
+                    data-bs-toggle="dropdown" aria-expanded="false" title="Adicionar Nova Transação">
+                    <i class="bi bi-plus-circle fs-3"></i>
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-3 border-0"
+                    aria-labelledby="addTransactionButton">
+                    <li>
+                        <a class="dropdown-item" href="@Url.Action("Create", "Expense")">
+                            <i class="bi bi-arrow-down-circle-fill text-danger"></i> Despesa
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="@Url.Action("Create", "Income")">
+                            <i class="bi bi-arrow-up-circle-fill text-success"></i> Receita
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="@Url.Action("Create", "CardExpense")">
+                            <i class="bi bi-credit-card-fill text-info"></i> Despesa cartão
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="@Url.Action("Create", "Transfer")">
+                            <i class="bi bi-arrow-left-right text-primary"></i> Transferência
+                        </a>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <a href="#" class="btn btn-link header-action-icon me-2" title="Pesquisar Transações">
+                <i class="bi bi-search fs-3"></i>
+            </a>
+            <a href="#" class="btn btn-link header-action-icon" title="Filtrar Transações">
+                <i class="bi bi-funnel fs-3"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-9">
+            <div class="card border-white bg-white shadow-sm p-4">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr class="bg-secondary">
+                                <th scope="col">Situação</th>
+                                <th scope="col">Data</th>
+                                <th scope="col">Descrição</th>
+                                <th scope="col">Categoria</th>
+                                <th scope="col">Conta</th>
+                                <th scope="col" class="text-end">Valor</th>
+                                <th scope="col" class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (groupedTransactions != null && groupedTransactions.Any())
+                            {
+                                @foreach (var dayGroup in groupedTransactions)
+                                {
+                                    decimal dailyBalance = 0;
+                                    @foreach (var transaction in dayGroup)
+                                    {
+                                        dailyBalance += transaction.Amount;
+                                        <tr>
+                                            <td>
+                                                @{
+                                                    string statusIconClass = "bi bi-check-circle-fill status-icon-ok";
+                                                    if (!transaction.Status)
+                                                    {
+                                                        statusIconClass = "bi bi-exclamation-circle-fill status-icon-pending";
+                                                    }
+                                                }
+                                                <i class="@statusIconClass" title="@transaction.Status"></i>
+                                            </td>
+                                            <td>@transaction.Date.ToString("dd/MM/yyyy")</td>
+                                            <td>@transaction.Description</td>
+                                            <td>@transaction.CategoryName</td>
+                                            <td>@transaction.AccountName</td>
+                                            <td class="@(transaction.Amount >= 0 ? "text-success" : "text-danger") fw-semibold text-end">
+                                                R$ @transaction.Amount.ToString("N2")
+                                            </td>
+                                            <td>
+                                                <div class="text-end">
+                                                    <a href="#" class="btn btn-sm btn-outline-secondary me-1" 
+                                                        title="Editar">
+                                                        <i class="bi bi-pencil"></i></a>
+                                                    <a href="#" class="btn btn-sm btn-outline-danger"
+                                                        title="Excluir">
+                                                        <i class="bi bi-trash"></i></a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                    @* Saldo do Final do Dia para o grupo atual *@
+                                    <tr class="daily-balance-row">
+                                        <td></td>
+                                        <td colspan="4">Saldo Previsto no Final do Dia</td>
+                                        <td class="@(dailyBalance >= 0 ? "text-success" : "text-danger") text-end">
+                                            R$ @dailyBalance.ToString("N2")</td>
+                                        <td></td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">
+                                        Nenhuma transação encontrada para este período.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <nav aria-label="Paginação de transações" class="mt-3">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                            <a class="page-link"
+                                href="@Url.Action("Index", new { year = currentYear, month = currentMonth, page = Model.CurrentPage - 1, pageSize = 10 })"
+                                aria-label="Previous">
+                                <span aria-hidden="true">&lt;</span>
+                            </a>
+                        </li>
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                                <a class="page-link"
+                                    href="@Url.Action("Index", new { year = currentYear, month = currentMonth, page = i, pageSize = 10 })">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link"
+                                href="@Url.Action("Index", new { year = currentYear, month = currentMonth, page = Model.CurrentPage + 1, pageSize = 10 })"
+                                aria-label="Next">
+                                <span aria-hidden="true">&gt;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="row g-4 balance-summary">
+
+                <div>
+                    <div class="card p-3 bg-white shadow-sm">
+                        <div class="d-flex align-items-center">
+                            <div
+                                class="icon-circle-summary bg-primary me-3 rounded-circle d-flex align-items-center justify-content-center text-white">
+                                <i class="bi bi-cash-stack"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1 text-dark">Saldo atual</h5>
+                                <p
+                                    class="fs-4 mb-0 @(Model.CurrentBalance >= 0 ? "text-success" : "text-danger") fw-semibold">
+                                    R$ @Model.CurrentBalance.ToString("N2")
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card p-3 bg-white shadow-sm">
+                        <div class="d-flex align-items-center">
+                            <div
+                                class="icon-circle-summary bg-success me-3 rounded-circle d-flex align-items-center justify-content-center text-white">
+                                <i class="bi bi-arrow-up"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1 text-dark">Receitas</h5>
+                                <p class="fs-4 mb-0 text-success fw-semibold">
+                                    R$ @Model.TotalIncomes.ToString("N2")
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card p-3 bg-white shadow-sm">
+                        <div class="d-flex align-items-center">
+                            <div
+                                class="icon-circle-summary bg-danger me-3 rounded-circle d-flex align-items-center justify-content-center text-white">
+                                <i class="bi bi-arrow-down"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1 text-dark">Despesas</h5>
+                                <p class="fs-4 mb-0 text-danger fw-semibold">
+                                    R$ @Model.TotalExpenses.ToString("N2")
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card p-3 bg-white shadow-sm">
+                        <div class="d-flex align-items-center">
+                            <div
+                                class="icon-circle-summary bg-info me-3 px-2 rounded-circle d-flex align-items-center justify-content-center text-white">
+                                <i class="bi bi-currency-dollar"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1 text-dark">Balanço Mensal</h5>
+                                <p
+                                    class="fs-4 mb-0 @(Model.MonthlyBalance >= 0 ? "text-success" : "text-danger") fw-semibold">
+                                    R$ @Model.MonthlyBalance.ToString("N2")
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+
+            const monthDropdown = document.getElementById('monthDropdown');
+            const yearNavs = document.querySelectorAll('.year-nav');
+            const monthLinks = document.querySelectorAll('.month-link');
+            const currentMonthBtn = document.getElementById('currentMonthBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const selectedYearEl = document.getElementById('selectedYear');
+
+            let currentYear = @Html.Raw(currentYear);
+            let selectedMonth = @Html.Raw(currentMonth);
+
+            yearNavs.forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const change = parseInt(this.dataset.yearChange);
+                    currentYear += change;
+                    selectedYearEl.textContent = currentYear;
+                });
+            });
+
+            monthLinks.forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const month = this.dataset.month;
+                    // Correção do @Url.Action() para garantir que a URL base seja gerada corretamente pelo Razor
+                    window.location.href = '@Url.Action("Index", "Transaction")' + `?year=${currentYear}&month=${month}&page=1`;
+                });
+            });
+
+            currentMonthBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const today = new Date();
+                const currentMonth = today.getMonth() + 1; // getMonth() é 0-indexed
+                const currentYear = today.getFullYear();
+                // Correção do @Url.Action()
+                window.location.href = '@Url.Action("Index", "Transaction")' + `?year=${currentYear}&month=${currentMonth}&page=1`;
+            });
+
+            cancelBtn.addEventListener('click', function () {
+                const dropdown = bootstrap.Dropdown.getInstance(monthDropdown) || new bootstrap.Dropdown(monthDropdown);
+                dropdown.hide();
+                // Opcional: Para resetar o ano exibido no dropdown para o ano original do carregamento da página
+                selectedYearEl.textContent = @Html.Raw(currentYear);
+            });
+        });
+    </script>
+}

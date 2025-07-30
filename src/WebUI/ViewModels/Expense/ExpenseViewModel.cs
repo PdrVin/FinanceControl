@@ -1,10 +1,10 @@
-using Application.DTOs;
+using Application.DTOs.Expenses;
 
 namespace WebUI.ViewModels.Expense;
 
 public class ExpenseViewModel
 {
-    public IEnumerable<ExpenseDto> Expenses { get; set; }
+    public IEnumerable<ExpenseResponse> Expenses { get; set; }
     public int PageNumber { get; set; }
     public int PageSize { get; set; }
     public int TotalItems { get; set; }

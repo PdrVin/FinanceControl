@@ -1,0 +1,114 @@
+@using Application.DTOs.BankAccounts
+@model BankAccountRequest
+@{
+    ViewData["Title"] = "Nova Conta Bancária";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css">
+<style>
+    /* Estilos Customizados e Sobrescritas Mínimas */
+    body {
+        background-color: #f8f9fa; /* Fundo claro geral, se não for definido globalmente */
+        color: #212529; /* Texto escuro padrão, se não for definido globalmente */
+    }
+    .container-fluid.p-0 {
+        max-width: 600px; /* Limita a largura do formulário */
+        margin: auto; /* Centraliza */
+    }
+    .bg-light-header { /* Cor específica para o cabeçalho, se 'bg-light' padrão não for suficiente */
+        background-color: #e9ecef !important; /* Um cinza claro para o cabeçalho */
+        /* text-color será handled by Bootstrap's default or text-dark */
+    }
+    /* Para ícones, se 'text-primary' Bootstrap não for exatamente o que você quer */
+    .text-primary-custom-icon {
+        color: #0d6efd !important; /* Exemplo: se você quiser um azul diferente do padrão do Bootstrap */
+    }
+    /* Se a cor da linha divisória precisar ser mais específica */
+    .custom-hr {
+        border-top: 1px solid #dee2e6;
+    }
+</style>
+
+<div class="container-fluid p-0">
+    @* Cabeçalho da Página *@
+    <div class="d-flex justify-content-between align-items-center py-3 px-4 bg-light-header border-bottom rounded-top">
+        <h2 class="h5 mb-0 fw-bold">Nova Conta Bancária</h2>
+        @* Botão de fechar - redireciona para a lista de contas *@
+        <a href="@Url.Action("Index", "BankAccounts")" class="btn-close" aria-label="Fechar"></a>
+    </div>
+
+    @* Formulário Principal *@
+    <div class="card rounded-0 rounded-bottom border-0 shadow-sm">
+        <div class="card-body">
+
+            <form asp-controller="BankAccounts" asp-action="Create" method="post" id="bankAccountForm">
+                @Html.AntiForgeryToken() @* Adiciona o token anti-CSRF para segurança *@
+
+                @* Seção de Nome da Conta *@
+                <div class="mb-3 d-flex align-items-center">
+                    <div class="me-3 text-primary fs-5"> @* text-primary é do Bootstrap *@
+                        <i class="bi bi-bank"></i> @* Ícone de Banco *@
+                    </div>
+                    <input type="text" asp-for="Name" class="form-control" placeholder="Nome da Conta" />
+                </div>
+                @Html.ValidationMessageFor(x => x.Name, null, new { @class = "text-danger d-block ms-5" })
+
+                <hr class="my-3 custom-hr" /> @* Usando uma classe customizada se a HR padrão não for suficiente *@
+
+                @* Seção de Saldo Inicial *@
+                <div class="mb-3 d-flex align-items-center">
+                    <div class="me-3 text-primary fs-5">
+                        <i class="bi bi-cash-coin"></i> @* Ícone de Moeda *@
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text">R$</span>
+                        <input type="text" asp-for="InitialBalance" class="form-control" placeholder="0,00" />
+                    </div>
+                </div>
+                @Html.ValidationMessageFor(x => x.InitialBalance, null, new { @class = "text-danger d-block ms-5" })
+
+                <hr class="my-3 custom-hr" />
+
+                @* Seção de Ativa/Inativa *@
+                <div class="mb-3 d-flex align-items-center">
+                    <div class="me-3 text-primary fs-5">
+                        <i class="bi bi-toggle-on"></i> @* Ícone de Ativo/Inativo *@
+                    </div>
+                    <select asp-for="IsActive" class="form-select">
+                        <option value="true">Ativa</option>
+                        <option value="false">Inativa</option>
+                    </select>
+                </div>
+                @Html.ValidationMessageFor(x => x.IsActive)
+
+                <hr class="my-3 custom-hr" />
+
+                @* Botões de Ação *@
+                <div class="d-flex justify-content-end gap-2 pt-3 border-top mt-3">
+                    <a class="btn btn-secondary" role="button" asp-action="Index">Voltar</a>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const amountInput = document.getElementById('InitialBalance');
+
+            amountInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value === '') {
+                    e.target.value = '';
+                    return;
+                }
+                value = (parseInt(value) / 100).toFixed(2);
+                value = value.replace('.', ',');
+                value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+                e.target.value = value;
+            });
+        });
+    </script>
+}

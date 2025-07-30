@@ -5,39 +5,47 @@
 @model ExpenseViewModel
 @{
     ViewData["Title"] = "Despesas";
+    int currentYear = ViewBag.CurrentYear ?? DateTime.Now.Year;
+    int currentMonth = ViewBag.CurrentMonth ?? DateTime.Now.Month;
 }
 
-<div class="container mt-4 mx-auto">
+<div class="container-fluid">
 
-    @if (TempData["MessageSuccess"] != null)
-    {
-        <div class="alert alert-success" role="alert">
-            @TempData["MessageSuccess"]
-            <button type="button" class="btn btn-danger btn-md close-alert" arial-label="Close">
-                <i class="bi bi-x-lg"></i></button>
+    <div class="d-flex justify-content-between align-items-center mb-4 bg-white rounded-3 px-4 py-3 shadow-sm">
+        <h1 class="mb-0">Despesas</h1> @* Título "Contas" *@
+        <div class="d-flex align-items-center">
+            @* Dropdown do mês/ano *@
+            <div class="position-relative me-3">
+                <button class="btn btn-month-year dropdown-toggle" type="button" id="monthDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    @Thread.CurrentThread.CurrentCulture.DateTimeFormat.GetMonthName(currentMonth)
+                </button>
+                <div class="dropdown-menu p-3" aria-labelledby="monthDropdown" style="min-width: 250px;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <a href="#" class="btn btn-link year-nav" data-year-change="-1"><i class="bi bi-chevron-left"></i></a>
+                        <h5 id="selectedYear" class="mb-0">@currentYear</h5>
+                        <a href="#" class="btn btn-link year-nav" data-year-change="1"><i class="bi bi-chevron-right"></i></a>
+                    </div>
+                    <div class="row row-cols-3 g-2 text-center" id="monthGrid">
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            string monthName = new DateTime(currentYear, m, 1).ToString("MMM").ToUpper();
+                            string activeClass = (m == currentMonth) ? "active" : ""; // Usar 'active' para o CSS customizado
+                            <div class="col">
+                                <a href="#" class="btn btn-sm w-100 month-link @activeClass" data-month="@m">@monthName</a>
+                            </div>
+                        }
+                    </div>
+                    <div class="d-flex justify-content-between mt-3">
+                        <button class="btn btn-sm btn-secondary-custom" id="cancelBtn">CANCELAR</button>
+                        <a href="#" class="btn btn-sm btn-primary-custom" id="currentMonthBtn">MÊS ATUAL</a>
+                    </div>
+                </div>
+            </div>
+
+            <a href="@Url.Action("Create", "Expense")" class="btn btn-link header-action-icon me-2" title="Adicionar Nova Conta">
+                <i class="bi bi-plus-circle"></i>
+            </a>
         </div>
-    }
-
-    @if (TempData["MessageError"] != null)
-    {
-        <div class="alert alert-danger" role="alert">
-            @TempData["MessageError"]
-            <button type="button" class="btn btn-danger btn-md close-alert" arial-label="Close">
-                <i class="bi bi-x-lg"></i></button>
-        </div>
-    }
-
-    <div class="mb-4">
-        <h2>Despesas</h2>
-    </div>
-
-    @* Cabeçalho de Navegação do Mês *@
-    <div class="d-flex justify-content-center align-items-center mb-4 p-3">
-        <button class="btn btn-link fs-4 p-0 me-2 rounded-pill shadow-sm" aria-label="Mês Anterior">
-            <i class="bi bi-chevron-left px-2"></i></button>
-        <span class="fs-5 fw-bold text-white px-3 py-2 rounded-pill bg-primary shadow-sm">Julho 2025</span> 
-        <button class="btn btn-link fs-4 p-0 ms-2 rounded-pill shadow-sm" aria-label="Próximo Mês">
-            <i class="bi bi-chevron-right px-2"></i></button>
     </div>
 
     <div class="card border shadow-sm rounded">
@@ -92,17 +100,15 @@
                                         name="ids" value="@expense.Id">
                                 </td>
                                 <td>
-                                    <a title="@expense.Status">
-                                        @if (expense.Status == Status.Pago)
-                                            { <i class="bi bi-check-circle-fill text-success"></i> }
-                                        else if (expense.Status == Status.Pendente)
-                                            { <i class="bi bi-exclamation-circle-fill text-danger"></i> }
-                                    </a>
+                                    @if (expense.IsPaid)
+                                        { <i class="bi bi-check-circle-fill text-success"></i> }
+                                    else
+                                        { <i class="bi bi-exclamation-circle-fill text-danger"></i> }
                                 </td>
                                 <td class="d-md-table-cell">@expense.Date.ToString("dd/MM/yyyy")</td>
                                 <td class="d-md-table-cell">@expense.Description</td>
                                 <td class="d-md-table-cell">@expense.Category</td>
-                                <td class="d-md-table-cell">@expense.Account</td>
+                                <td class="d-md-table-cell">@expense.BankAccount!.Name</td>
                                 <td class="text-danger d-md-table-cell">R$ @expense.Amount.ToString("N2")</td>
                                 <td>
                                     <div class="btn-group-sm" role="group">
@@ -162,7 +168,7 @@
                             {
                                 <li class="page-item @(i == Model.PageNumber ? "active" : "")">
                                     <a class="page-link @(i == Model.PageNumber ? "bg-primary border-primary" : "border-secondary")"
-                                       href="@Url.Action("Index", new {
+                                        href="@Url.Action("Index", new {
                                                 pageNumber = i,
                                                 pageSize = Model.PageSize,
                                                 searchTerm = Model.SearchTerm })">@i</a>
