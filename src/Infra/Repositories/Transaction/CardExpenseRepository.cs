@@ -11,7 +11,7 @@ public class CardExpenseRepository : Repository<CardExpense>, ICardExpenseReposi
 {
     public CardExpenseRepository(FinanceDbContext context) : base(context) { }
 
-    public async Task<IEnumerable<CardExpense>> GetExpensesByCreditCardIdAsync(Guid creditCardId)
+    public async Task<IEnumerable<CardExpense>> GetCardExpensesByCreditCardIdAsync(Guid creditCardId)
     {
         return await Entities
             .Where(ce => ce.CreditCardId == creditCardId)
@@ -22,10 +22,21 @@ public class CardExpenseRepository : Repository<CardExpense>, ICardExpenseReposi
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<CardExpense>> GetExpensesByInvoiceIdAsync(Guid invoiceId)
+    public async Task<IEnumerable<CardExpense>> GetCardExpensesByInvoiceIdAsync(Guid invoiceId)
     {
         return await Entities
             .Where(ce => ce.InvoiceId == invoiceId)
+            .Include(ce => ce.BankAccount)
+            .Include(ce => ce.CreditCard)
+            .Include(ce => ce.Invoice)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<CardExpense>> GetCardExpensesByPeriodAsync(DateTime startDate, DateTime endDate)
+    {
+        return await Entities
+            .Where(ce => ce.Date >= startDate && ce.Date <= endDate)
             .Include(ce => ce.BankAccount)
             .Include(ce => ce.CreditCard)
             .Include(ce => ce.Invoice)

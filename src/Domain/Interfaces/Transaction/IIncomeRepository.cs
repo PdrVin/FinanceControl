@@ -10,6 +10,8 @@ public interface IIncomeRepository : IRepository<Income>
     Task<Income> GetIncomeByIdAsync(Guid id);
     Task<IEnumerable<Income>> GetIncomesByBankAccountIdAsync(Guid bankAccountId);
     Task<IEnumerable<Income>> GetIncomesByCategoryAsync(IncomeCategory category);
+    Task<IEnumerable<Income>> GetIncomesByPeriodAsync(DateTime startDate, DateTime endDate);
+
     Task<(IEnumerable<Income> Items, int TotalCount)> GetPaginatedAsync(
         int pageNumber, int pageSize, string searchTerm = "");
 }

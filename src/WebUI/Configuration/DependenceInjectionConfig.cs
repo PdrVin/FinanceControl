@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Application.Interfaces.Base;
+using Application.Interfaces.Transaction;
 using Application.Mapping;
 using Application.Services.Account;
 using Application.Services.Base;
@@ -31,6 +32,7 @@ public static class DependencyInjectionConfig
         services.AddScoped<IExpenseService, ExpenseService>();
         services.AddScoped<IIncomeService, IncomeService>();
         services.AddScoped<ITransferService, TransferService>();
+        services.AddScoped<ITransactionService, TransactionService>();
         #endregion
 
         #region Repositories

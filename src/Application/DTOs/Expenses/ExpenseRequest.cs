@@ -5,9 +5,8 @@ namespace Application.DTOs.Expenses;
 
 public class ExpenseRequest
 {
-    [Required(ErrorMessage = "Description is required.")]
     [StringLength(250, ErrorMessage = "Description cannot exceed 250 characters.")]
-    public string Description { get; set; } = string.Empty;
+    public string? Description { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Amount is required.")]
     [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than zero.")]

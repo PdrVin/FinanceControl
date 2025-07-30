@@ -41,13 +41,13 @@ public class CardExpenseService
 
     public async Task<IEnumerable<CardExpenseResponse>> GetExpensesByCreditCardIdAsync(Guid creditCardId)
     {
-        var expenses = await _cardExpenseRepository.GetExpensesByCreditCardIdAsync(creditCardId);
+        var expenses = await _cardExpenseRepository.GetCardExpensesByCreditCardIdAsync(creditCardId);
         return _mapper.Map<IEnumerable<CardExpenseResponse>>(expenses);
     }
 
     public async Task<IEnumerable<CardExpenseResponse>> GetExpensesByInvoiceIdAsync(Guid invoiceId)
     {
-        var expenses = await _cardExpenseRepository.GetExpensesByInvoiceIdAsync(invoiceId);
+        var expenses = await _cardExpenseRepository.GetCardExpensesByInvoiceIdAsync(invoiceId);
         return _mapper.Map<IEnumerable<CardExpenseResponse>>(expenses);
     }
 

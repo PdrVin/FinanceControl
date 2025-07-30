@@ -47,6 +47,15 @@ public class IncomeRepository : Repository<Income>, IIncomeRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Income>> GetIncomesByPeriodAsync(DateTime startDate, DateTime endDate)
+    {
+        return await Entities
+            .Where(i => i.Date >= startDate && i.Date <= endDate)
+            .Include(i => i.BankAccount)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
     public async Task<(IEnumerable<Income> Items, int TotalCount)> GetPaginatedAsync(
         int pageNumber,
         int pageSize,

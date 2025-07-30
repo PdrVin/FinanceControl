@@ -5,7 +5,7 @@ namespace Domain.Entities;
 
 public class Expense : EntityBase
 {
-    public string Description { get; set; }
+    public string? Description { get; set; }
     public decimal Amount { get; set; }
     public PayType PayType { get; set; }
     public DateTime Date { get; set; }

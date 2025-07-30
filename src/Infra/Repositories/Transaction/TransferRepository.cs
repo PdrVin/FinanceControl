@@ -10,6 +10,16 @@ public class TransferRepository : Repository<Transfer>, ITransferRepository
 {
     public TransferRepository(FinanceDbContext context) : base(context) { }
 
+    public async Task<IEnumerable<Transfer>> GetTransfersByPeriodAsync(DateTime startDate, DateTime endDate)
+    {
+        return await Entities
+            .Where(t => t.Date >= startDate && t.Date <= endDate)
+            .Include(t => t.SourceAccount)
+            .Include(t => t.DestinationAccount)
+            .OrderByDescending(t => t.Date)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<Transfer>> GetTransfersByAccountIdAsync(Guid accountId)
     {
         return await Entities
