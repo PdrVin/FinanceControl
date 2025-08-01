@@ -1,7 +1,7 @@
 using Application.DTOs.Expenses;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using WebUI.ViewModels.Expense;
+// using WebUI.ViewModels.Expense;
 
 namespace WebUI.Controllers;
 
@@ -17,38 +17,7 @@ public class ExpenseController : Controller
         _bankAccountService = bankAccountService;
     }
 
-    // public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, string searchTerm = "")
-    // {
-    //     var result = await _expenseService.GetPaginatedExpensesAsync(pageNumber, pageSize, searchTerm);
-    //     return View(
-    //         new ExpenseViewModel
-    //         {
-    //             Expenses = result.Items,
-    //             TotalItems = result.TotalItems,
-    //             PageNumber = result.PageNumber,
-    //             PageSize = result.PageSize,
-    //             SearchTerm = searchTerm
-    //         }
-    //     );
-    // }
-
-    // // GET: /Expenses/Details/5
-    // [HttpGet("Details/{id:guid}")]
-    // public async Task<IActionResult> Details(Guid id)
-    // {
-    //     try
-    //     {
-    //         var expense = await _expenseService.GetExpenseByIdAsync(id);
-    //         return View(expense);
-    //     }
-    //     catch (KeyNotFoundException)
-    //     {
-    //         TempData["ErrorMessage"] = "Despesa não encontrada.";
-    //         return RedirectToAction(nameof(Index));
-    //     }
-    // }
-
-    // GET: /Expenses/Create
+    #region Create
     [HttpGet("Create")]
     public async Task<IActionResult> Create()
     {
@@ -56,7 +25,6 @@ public class ExpenseController : Controller
         return View();
     }
 
-    // POST: /Expenses/Create
     [HttpPost("Create")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([FromForm] ExpenseRequest request)
@@ -71,7 +39,7 @@ public class ExpenseController : Controller
         {
             await _expenseService.CreateExpenseAsync(request);
             TempData["SuccessMessage"] = "Despesa criada com sucesso!";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), "Transaction");
         }
         catch (KeyNotFoundException ex)
         {
@@ -85,8 +53,68 @@ public class ExpenseController : Controller
         ViewBag.BankAccounts = await _bankAccountService.GetAllBankAccountsAsync();
         return View(request);
     }
+    #endregion
 
-    // POST: /Expenses/Delete/5
+    #region Edit
+        [HttpGet("Edit/{id:guid}")]
+    public async Task<IActionResult> Edit(Guid id)
+    {
+        try
+        {
+            var expense = await _expenseService.GetExpenseByIdAsync(id);
+            ViewBag.BankAccounts = await _bankAccountService.GetAllBankAccountsAsync();
+            return View(expense);
+        }
+        catch (KeyNotFoundException)
+        {
+            TempData["ErrorMessage"] = "Despesa não encontrada.";
+            return RedirectToAction(nameof(Index), "Transaction");
+        }
+    }
+
+    [HttpPost("Edit/{id:guid}")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(Guid id, [FromForm] ExpenseRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            ViewBag.BankAccounts = await _bankAccountService.GetAllBankAccountsAsync();
+            return View(request);
+        }
+
+        try
+        {
+            await _expenseService.UpdateExpenseAsync(id, request);
+            TempData["SuccessMessage"] = "Despesa atualizada com sucesso!";
+        }
+        catch (KeyNotFoundException ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Ocorreu um erro ao atualizar a receita: {ex.Message}";
+        }
+        return RedirectToAction(nameof(Index), "Transaction");
+    }
+    #endregion
+
+    #region Delete
+    [HttpGet("Delete/{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        try
+        {
+            var expense = await _expenseService.GetExpenseByIdAsync(id);
+            return View(nameof(DeleteConfirmed), expense);
+        }
+        catch (KeyNotFoundException)
+        {
+            TempData["ErrorMessage"] = "Despesa não encontrada.";
+            return RedirectToAction(nameof(Index), "Transaction");
+        }
+    }
+
     [HttpPost("Delete/{id:guid}")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(Guid id)
@@ -95,17 +123,16 @@ public class ExpenseController : Controller
         {
             await _expenseService.DeleteExpenseAsync(id);
             TempData["SuccessMessage"] = "Despesa excluída com sucesso!";
-            return RedirectToAction(nameof(Index));
         }
         catch (KeyNotFoundException)
         {
             TempData["ErrorMessage"] = "Despesa não encontrada.";
-            return RedirectToAction(nameof(Index));
         }
         catch (Exception ex)
         {
             TempData["ErrorMessage"] = $"Ocorreu um erro ao deletar: {ex.Message}";
-            return RedirectToAction(nameof(Index));
         }
+        return RedirectToAction(nameof(Index), "Transaction");
     }
+    #endregion
 }

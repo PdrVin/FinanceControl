@@ -1,0 +1,55 @@
+@using Application.DTOs.Incomes
+
+@model IncomeResponse
+@{
+    ViewData["Title"] = "Deletar Receita";
+}
+
+<style>
+    .container-fluid.p-0 {
+        max-width: 500px;
+        margin: auto;
+    }
+
+    .bg-header {
+        background-color: #f8f9fa !important;
+        color: #343a40;
+        border-bottom: 1px solid #dee2e6;
+    }
+</style>
+
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center py-3 px-4 bg-header rounded-top">
+        <h5 class="mb-0 fw-bold">Deletar Despesa</h5>
+        <a href="@Url.Action("Index", "Transaction")" class="btn-close" aria-label="Fechar"></a>
+    </div>
+
+    <div class="card rounded-0 rounded-bottom border-0 shadow-sm">
+        <div class="card-body">
+            
+            <div class="d-flex mb-3">
+                <div class="d-flex flex-column col-6">
+                    <p class="mb-0 text-muted">Descrição</p>
+                    <p class="mb-0">@Model.Description</p>
+                </div>
+                <div class="d-flex flex-column col-6">
+                    <p class="mb-0 text-muted">Valor</p>
+                    <p class="mb-0 text-danger">@Model.Amount.ToString("C")</p>
+                </div>
+            </div>
+
+            <form asp-controller="Expense" asp-action="DeleteConfirmed"
+                asp-route-id="@Model.Id" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+
+                <div class="d-flex justify-content-end gap-2 pt-3 border-top mt-3 rounded">
+                    <a asp-action="Index" asp-controller="Transaction"
+                        class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-danger">Deletar</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>

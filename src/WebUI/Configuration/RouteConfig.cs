@@ -52,10 +52,9 @@ public static class RouteConfig
         // Rota Padrão (Default) - Deve ser a última para evitar conflitos com rotas mais específicas
         endpoints.MapControllerRoute(
             name: "default",
-            pattern: "{controller=Home}/{action=Index}/{id?}");
+            pattern: "{controller=Home}/{action=Index}/");
 
         // Rota de Fallback - Para capturar URLs não mapeadas (útil para SPAs ou erros 404 customizados)
         // Geralmente aponta para a página inicial ou um controlador de erro.
-        endpoints.MapFallbackToController("Index", "Home");
     }
 }

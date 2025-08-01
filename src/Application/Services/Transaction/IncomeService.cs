@@ -10,7 +10,7 @@ using AutoMapper;
 
 namespace Application.Services.Transaction;
 
-public class IncomeService : Service<IncomeRequest, IncomeResponse,Income>, IIncomeService
+public class IncomeService : Service<IncomeRequest, IncomeResponse, Income>, IIncomeService
 {
     private readonly IIncomeRepository _incomeRepository;
     private readonly IBankAccountRepository _bankAccountRepository;
@@ -37,7 +37,7 @@ public class IncomeService : Service<IncomeRequest, IncomeResponse,Income>, IInc
         var incomes = await _incomeRepository.GetAllIncomesAsync();
         return _mapper.Map<IEnumerable<IncomeResponse>>(incomes);
     }
-    
+
     public async Task<IncomeResponse> GetIncomeByIdAsync(Guid id)
     {
         var income = await _incomeRepository.GetIncomeByIdAsync(id);
@@ -66,6 +66,9 @@ public class IncomeService : Service<IncomeRequest, IncomeResponse,Income>, IInc
         bankAccount.CurrentBalance += request.Amount;
         _bankAccountRepository.Update(bankAccount);
 
+        if (string.IsNullOrEmpty(request.Description))
+            request.Description = request.Category.ToString();
+
         var income = _mapper.Map<Income>(request);
 
         await _incomeRepository.SaveAsync(income);
@@ -76,19 +79,15 @@ public class IncomeService : Service<IncomeRequest, IncomeResponse,Income>, IInc
     #region Update
     public async Task UpdateIncomeAsync(Guid id, IncomeRequest request)
     {
-        var existingIncome = await _incomeRepository.GetByIdAsync(id)
+        var income = await _incomeRepository.GetIncomeByIdAsync(id)
             ?? throw new KeyNotFoundException($"Income with id {id} not found.");
 
-        // Lógica de negócio: Reverter o saldo antigo e aplicar o novo
-        var bankAccount = await _bankAccountRepository.GetByIdAsync(existingIncome.BankAccountId)
-            ?? throw new KeyNotFoundException($"Bank account with id {existingIncome.BankAccountId} not found.");
+        income.BankAccount.CurrentBalance += request.Amount - income.Amount;
+        _bankAccountRepository.Update(income.BankAccount);
 
-        bankAccount.CurrentBalance -= existingIncome.Amount;
-        bankAccount.CurrentBalance += request.Amount;
-        _bankAccountRepository.Update(bankAccount);
+        _mapper.Map(request, income);
 
-        _mapper.Map(request, existingIncome);
-        _incomeRepository.Update(existingIncome);
+        _incomeRepository.Update(income);
         await _unitOfWork.CommitAsync();
     }
     #endregion

@@ -5,12 +5,13 @@
     ViewData["Title"] = "Transações";
     int currentYear = ViewBag.CurrentYear;
     int currentMonth = ViewBag.CurrentMonth;
+
     // Agrupar as transações por data para o "Saldo do Final do Dia"
     var groupedTransactions = Model.Transactions
-    .OrderByDescending(t => t.Date)
-    .GroupBy(t => t.Date.Date)
-    .OrderByDescending(g => g.Key)
-    .ToList();
+        .OrderByDescending(t => t.Date)
+        .GroupBy(t => t.Date.Date)
+        .OrderByDescending(g => g.Key)
+        .ToList();
 }
 
 <style>
@@ -131,7 +132,7 @@
         <h1 class="mb-0">Transações</h1>
         <div class="d-flex align-items-center">
 
-            @* Dropdown do mês/ano - Lógica JS similar ao BankAccounts Index *@
+            @* Dropdown do mês/ano *@
             <div class="position-relative me-3">
                 <button class="btn border-secondary-subtle dropdown-toggle rounded-pill px-3 py-2" type="button"
                     id="monthDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -204,6 +205,7 @@
             <a href="#" class="btn btn-link header-action-icon me-2" title="Pesquisar Transações">
                 <i class="bi bi-search fs-3"></i>
             </a>
+
             <a href="#" class="btn btn-link header-action-icon" title="Filtrar Transações">
                 <i class="bi bi-funnel fs-3"></i>
             </a>
@@ -215,6 +217,7 @@
             <div class="card border-white bg-white shadow-sm p-4">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
+
                         <thead>
                             <tr class="bg-secondary">
                                 <th scope="col">Situação</th>
@@ -226,6 +229,7 @@
                                 <th scope="col" class="text-end">Ações</th>
                             </tr>
                         </thead>
+
                         <tbody>
                             @if (groupedTransactions != null && groupedTransactions.Any())
                             {
@@ -250,21 +254,25 @@
                                             <td>@transaction.Description</td>
                                             <td>@transaction.CategoryName</td>
                                             <td>@transaction.AccountName</td>
-                                            <td class="@(transaction.Amount >= 0 ? "text-success" : "text-danger") fw-semibold text-end">
+                                            <td
+                                                class="@(transaction.Amount >= 0 ? "text-success" : "text-danger") fw-semibold text-end">
                                                 R$ @transaction.Amount.ToString("N2")
                                             </td>
                                             <td>
                                                 <div class="text-end">
-                                                    <a href="#" class="btn btn-sm btn-outline-secondary me-1" 
-                                                        title="Editar">
+                                                    <a asp-controller="@transaction.Type" 
+                                                        asp-action="Edit" asp-route-id="@transaction.Id"
+                                                        class="btn btn-sm btn-outline-secondary me-1" title="Editar">
                                                         <i class="bi bi-pencil"></i></a>
-                                                    <a href="#" class="btn btn-sm btn-outline-danger"
-                                                        title="Excluir">
+                                                    <a asp-controller="@transaction.Type" 
+                                                        asp-action="Delete" asp-route-id="@transaction.Id"
+                                                        class="btn btn-sm btn-outline-danger" title="Excluir">
                                                         <i class="bi bi-trash"></i></a>
                                                 </div>
                                             </td>
                                         </tr>
                                     }
+
                                     @* Saldo do Final do Dia para o grupo atual *@
                                     <tr class="daily-balance-row">
                                         <td></td>
@@ -299,13 +307,14 @@
                         {
                             <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
                                 <a class="page-link"
-                                    href="@Url.Action("Index", new { year = currentYear, month = currentMonth, page = i, pageSize = 10 })">@i</a>
+                                    href="@Url.Action("Index", new { year = currentYear, month = currentMonth,
+                                        page = i, pageSize = 10 })">@i</a>
                             </li>
                         }
                         <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
                             <a class="page-link"
-                                href="@Url.Action("Index", new { year = currentYear, month = currentMonth, page = Model.CurrentPage + 1, pageSize = 10 })"
-                                aria-label="Next">
+                                href="@Url.Action("Index", new { year = currentYear, month = currentMonth,
+                                    page = Model.CurrentPage + 1, pageSize = 10 })" aria-label="Next">
                                 <span aria-hidden="true">&gt;</span>
                             </a>
                         </li>

@@ -16,34 +16,7 @@ public class IncomeController : Controller
         _bankAccountService = bankAccountService;
     }
 
-    // GET: /Incomes
-    public async Task<IActionResult> Index([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchTerm = "")
-    {
-        var result = await _incomeService.GetPaginatedIncomesAsync(pageNumber, pageSize, searchTerm);
-        ViewBag.TotalCount = result.Items.Count();
-        ViewBag.PageNumber = pageNumber;
-        ViewBag.PageSize = pageSize;
-        ViewBag.SearchTerm = searchTerm;
-        return View(result.Items);
-    }
-    
-    // GET: /Incomes/Details/5
-    [HttpGet("Details/{id:guid}")]
-    public async Task<IActionResult> Details(Guid id)
-    {
-        try
-        {
-            var income = await _incomeService.GetIncomeByIdAsync(id);
-            return View(income);
-        }
-        catch (KeyNotFoundException)
-        {
-            TempData["ErrorMessage"] = "Receita não encontrada.";
-            return RedirectToAction(nameof(Index));
-        }
-    }
-
-    // GET: /Incomes/Create
+    #region Create
     [HttpGet("Create")]
     public async Task<IActionResult> Create()
     {
@@ -51,7 +24,6 @@ public class IncomeController : Controller
         return View();
     }
 
-    // POST: /Incomes/Create
     [HttpPost("Create")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([FromForm] IncomeRequest request)
@@ -66,7 +38,7 @@ public class IncomeController : Controller
         {
             await _incomeService.CreateIncomeAsync(request);
             TempData["SuccessMessage"] = "Receita criada com sucesso!";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), "Transaction");
         }
         catch (KeyNotFoundException ex)
         {
@@ -80,8 +52,68 @@ public class IncomeController : Controller
         ViewBag.BankAccounts = await _bankAccountService.GetAllBankAccountsAsync();
         return View(request);
     }
-    
-    // POST: /Incomes/Delete/5
+    #endregion
+
+    #region Edit
+    [HttpGet("Edit/{id:guid}")]
+    public async Task<IActionResult> Edit(Guid id)
+    {
+        try
+        {
+            var income = await _incomeService.GetIncomeByIdAsync(id);
+            ViewBag.BankAccounts = await _bankAccountService.GetAllBankAccountsAsync();
+            return View(income);
+        }
+        catch (KeyNotFoundException)
+        {
+            TempData["ErrorMessage"] = "Receita não encontrada.";
+            return RedirectToAction(nameof(Index), "Transaction");
+        }
+    }
+
+    [HttpPost("Edit/{id:guid}")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(Guid id, [FromForm] IncomeRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            ViewBag.BankAccounts = await _bankAccountService.GetAllBankAccountsAsync();
+            return View(request);
+        }
+
+        try
+        {
+            await _incomeService.UpdateIncomeAsync(id, request);
+            TempData["SuccessMessage"] = "Receita atualizada com sucesso!";
+        }
+        catch (KeyNotFoundException ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Ocorreu um erro ao atualizar a receita: {ex.Message}";
+        }
+        return RedirectToAction(nameof(Index), "Transaction");
+    }
+    #endregion
+
+    #region Delete
+    [HttpGet("Delete/{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        try
+        {
+            var income = await _incomeService.GetIncomeByIdAsync(id);
+            return View(nameof(DeleteConfirmed), income);
+        }
+        catch (KeyNotFoundException)
+        {
+            TempData["ErrorMessage"] = "Receita não encontrada.";
+            return RedirectToAction(nameof(Index), "Transaction");
+        }
+    }
+
     [HttpPost("Delete/{id:guid}")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(Guid id)
@@ -90,17 +122,16 @@ public class IncomeController : Controller
         {
             await _incomeService.DeleteIncomeAsync(id);
             TempData["SuccessMessage"] = "Receita excluída com sucesso!";
-            return RedirectToAction(nameof(Index));
         }
         catch (KeyNotFoundException)
         {
             TempData["ErrorMessage"] = "Receita não encontrada.";
-            return RedirectToAction(nameof(Index));
         }
         catch (Exception ex)
         {
             TempData["ErrorMessage"] = $"Ocorreu um erro ao deletar: {ex.Message}";
-            return RedirectToAction(nameof(Index));
         }
+        return RedirectToAction(nameof(Index), "Transaction");
     }
+    #endregion
 }

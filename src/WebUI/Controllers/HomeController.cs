@@ -4,7 +4,6 @@ using WebUI.ViewModels.Dashboard; // Novo namespace
 
 namespace WebUI.Controllers;
 
-[Route("Dashboard")]
 public class HomeController : Controller
 {
     private readonly IBankAccountService _bankAccountService;

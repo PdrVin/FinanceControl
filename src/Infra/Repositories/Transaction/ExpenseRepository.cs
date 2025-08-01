@@ -69,7 +69,7 @@ public class ExpenseRepository : Repository<Expense>, IExpenseRepository
         if (!string.IsNullOrEmpty(searchTerm))
         {
             query = query.Where(e =>
-                e.Description.Contains(searchTerm) ||
+                e.Description!.Contains(searchTerm) ||
                 e.Category.ToString().Contains(searchTerm) ||
                 e.BankAccount!.ToString().Contains(searchTerm)
             );

@@ -16,30 +16,35 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         // Entidade -> DTO
-        CreateMap<BankAccount, BankAccountResponse>();
-        CreateMap<CreditCard, CreditCardResponse>();
-        CreateMap<Invoice, InvoiceResponse>();
-        CreateMap<InvoicePayment, InvoicePaymentResponse>();
-        CreateMap<CardExpense, CardExpenseResponse>();
-        CreateMap<Expense, ExpenseResponse>();
-        CreateMap<Income, IncomeResponse>();
-        CreateMap<Transfer, TransferResponse>();
+        CreateMap<BankAccount, BankAccountResponse>().ReverseMap();
+        CreateMap<CreditCard, CreditCardResponse>().ReverseMap();
+        CreateMap<Invoice, InvoiceResponse>().ReverseMap();
+        CreateMap<InvoicePayment, InvoicePaymentResponse>().ReverseMap();
+        CreateMap<CardExpense, CardExpenseResponse>().ReverseMap();
+        CreateMap<Expense, ExpenseResponse>().ReverseMap();
+        CreateMap<Income, IncomeResponse>().ReverseMap();
+        CreateMap<Transfer, TransferResponse>().ReverseMap();
 
         // DTO -> Entidade
-        CreateMap<BankAccountRequest, BankAccount>();
-        CreateMap<CreditCardRequest, CreditCard>();
-        CreateMap<InvoiceRequest, Invoice>();
-        CreateMap<InvoicePaymentRequest, InvoicePayment>();
-        CreateMap<CardExpenseRequest, CardExpense>();
-        CreateMap<ExpenseRequest, Expense>();
-        CreateMap<IncomeRequest, Income>();
-        CreateMap<TransferRequest, Transfer>();
+        CreateMap<BankAccountRequest, BankAccount>().ReverseMap();
+        CreateMap<CreditCardRequest, CreditCard>().ReverseMap();
+        CreateMap<InvoiceRequest, Invoice>().ReverseMap();
+        CreateMap<InvoicePaymentRequest, InvoicePayment>().ReverseMap();
+        CreateMap<CardExpenseRequest, CardExpense>().ReverseMap();
+        CreateMap<ExpenseRequest, Expense>().ReverseMap();
+        CreateMap<IncomeRequest, Income>().ReverseMap();
+        CreateMap<TransferRequest, Transfer>().ReverseMap();
 
         // DTO para Entidade Existente (para Update)
         CreateMap<BankAccountRequest, BankAccount>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore());
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ReverseMap();
         CreateMap<CreditCardRequest, CreditCard>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore());
-        
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ReverseMap();
+        CreateMap<IncomeRequest, Income>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ReverseMap();
+
     }
 }

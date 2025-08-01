@@ -1,93 +1,138 @@
-@using Application.DTOs.Expenses
+﻿@using Application.DTOs.BankAccounts
+@using Application.DTOs.Incomes
 @using Domain.Enums
-@using Application.DTOs.BankAccounts
 
-@model ExpenseRequest
+@model IncomeRequest
 @{
-    ViewData["Title"] = "Nova Despesa";
+    ViewData["Title"] = "Nova Receita";
 }
 
 <style>
     /* Estilos customizados para o formulário no TEMA CLARO */
     .container-fluid.p-0 {
-        max-width: 600px; /* Limita a largura do formulário para melhor visualização */
-        margin: auto; /* Centraliza */
+        max-width: 600px;
+        /* Limita a largura do formulário para melhor visualização */
+        margin: auto;
+        /* Centraliza */
     }
+
     .card {
-        background-color: #ffffff; /* Fundo branco para o card */
-        color: #343a40; /* Cor do texto escuro */
-        border: 1px solid #dee2e6; /* Borda clara */
+        background-color: #ffffff;
+        /* Fundo branco para o card */
+        color: #343a40;
+        /* Cor do texto escuro */
+        border: 1px solid #dee2e6;
+        /* Borda clara */
     }
-    .bg-header-custom { /* Nova classe para o cabeçalho */
-        background-color: #f8f9fa !important; /* Cor de fundo clara para o cabeçalho */
-        color: #343a40; /* Cor do texto escuro */
+
+    .bg-header-custom {
+        /* Nova classe para o cabeçalho */
+        background-color: #f8f9fa !important;
+        /* Cor de fundo clara para o cabeçalho */
+        color: #343a40;
+        /* Cor do texto escuro */
         border-bottom: 1px solid #dee2e6;
     }
-    .border-bottom-custom { /* Nova classe para bordas */
-        border-color: #e9ecef !important; /* Cor da borda mais clara */
+
+    .border-bottom-custom {
+        /* Nova classe para bordas */
+        border-color: #e9ecef !important;
+        /* Cor da borda mais clara */
     }
-    .form-control, .form-select {
-        background-color: #f8f9fa; /* Fundo dos inputs levemente cinza */
-        color: #495057; /* Texto dos inputs */
-        border-color: #ced4da; /* Borda dos inputs */
-    }
-    .form-control::placeholder {
-        color: #adb5bd; /* Cor do placeholder */
-    }
-    .form-control:focus, .form-select:focus {
-        background-color: #ffffff; /* Fundo dos inputs ao focar */
+
+    .form-control,
+    .form-select {
+        background-color: #f8f9fa;
+        /* Fundo dos inputs levemente cinza */
         color: #495057;
-        border-color: #80bdff; /* Cor da borda ao focar */
+        /* Texto dos inputs */
+        border-color: #ced4da;
+        /* Borda dos inputs */
+    }
+
+    .form-control::placeholder {
+        color: #adb5bd;
+        /* Cor do placeholder */
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background-color: #ffffff;
+        /* Fundo dos inputs ao focar */
+        color: #495057;
+        border-color: #80bdff;
+        /* Cor da borda ao focar */
         box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
     }
+
     .input-group-text {
-        background-color: #e9ecef; /* Fundo do R$ */
-        color: #495057; /* Texto do R$ */
+        background-color: #e9ecef;
+        /* Fundo do R$ */
+        color: #495057;
+        /* Texto do R$ */
         border-color: #ced4da;
     }
+
     .btn-close {
-        filter: none; /* Remove o invert para ser visível em fundo claro */
-        color: #000; /* Garante que o X é preto */
-        opacity: 0.5; /* Opacidade padrão do Bootstrap */
+        filter: none;
+        /* Remove o invert para ser visível em fundo claro */
+        color: #000;
+        /* Garante que o X é preto */
+        opacity: 0.5;
+        /* Opacidade padrão do Bootstrap */
     }
+
     .btn-close:hover {
         opacity: 0.75;
     }
+
     .text-danger {
         color: #dc3545 !important;
     }
+
     .text-success {
         color: #28a745 !important;
     }
+
     .text-primary {
-        color: #007bff !important; /* Cor dos ícones */
+        color: #007bff !important;
+        /* Cor dos ícones */
     }
+
     hr {
-        border-top: 1px solid #e9ecef; /* Cor da linha divisória clara */
+        border-top: 1px solid #e9ecef;
+        /* Cor da linha divisória clara */
     }
+
     /* Estilo para o ícone customizado de círculo ao lado do input */
     .input-icon-wrapper {
         display: flex;
         align-items: center;
     }
+
     .input-icon-wrapper .icon-circle {
-        min-width: 38px; /* Largura fixa para o círculo do ícone */
-        height: 38px; /* Altura fixa para o círculo do ícone */
-        background-color: #007bff; /* Cor primária para o círculo */
+        min-width: 38px;
+        /* Largura fixa para o círculo do ícone */
+        height: 38px;
+        /* Altura fixa para o círculo do ícone */
+        background-color: #007bff;
+        /* Cor primária para o círculo */
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        font-size: 1.2rem; /* Tamanho do ícone */
-        margin-right: 0.75rem; /* Espaçamento à direita do ícone */
+        font-size: 1.2rem;
+        /* Tamanho do ícone */
+        margin-right: 0.75rem;
+        /* Espaçamento à direita do ícone */
     }
 </style>
 
 <div class="container-fluid p-0">
     @* Cabeçalho do Modal/Página *@
     <div class="d-flex justify-content-between align-items-center py-3 px-4 bg-header-custom rounded-top">
-        <h2 class="h5 mb-0 fw-bold">Nova Despesa</h2>
+        <h2 class="h5 mb-0 fw-bold">Nova Receita</h2>
         @* Botão de fechar - pode redirecionar ou fechar um modal JS *@
         <a href="@Url.Action("Index", "Transaction")" class="btn-close" aria-label="Fechar"></a>
     </div>
@@ -96,7 +141,7 @@
     <div class="card rounded-0 rounded-bottom border-0 shadow-sm">
         <div class="card-body">
 
-            <form asp-controller="Expense" asp-action="Create" method="post" id="expenseForm">
+            <form asp-controller="Income" asp-action="Create" method="post" id="incomeForm">
                 @Html.AntiForgeryToken() @* Adiciona o token anti-CSRF para segurança *@
 
                 @* Seção de Valor *@
@@ -107,8 +152,7 @@
                     <div class="input-group flex-grow-1"> @* flex-grow-1 para preencher o espaço restante *@
                         <span class="input-group-text">R$</span>
                         <input type="text" id="Amount" name="Amount" class="form-control" placeholder="0,00"
-                        @* value="@(Model?.Amount.ToString("N2", System.Globalization.CultureInfo.GetCultureInfo("pt-BR")) ?? "0,00")" *@
-                        />
+                            value="@(Model?.Amount.ToString("N2", System.Globalization.CultureInfo.GetCultureInfo("pt-BR")) ?? "0,00")" />
                     </div>
                 </div>
                 @Html.ValidationMessageFor(x => x.Amount, null, new { @class = "text-danger d-block ms-5" })
@@ -120,7 +164,8 @@
                     <div class="icon-circle">
                         <i class="bi bi-calendar"></i> @* Ícone de Calendário *@
                     </div>
-                    <input type="date" asp-for="Date" class="form-control" value="@(Model?.Date.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd"))" />
+                    <input type="date" asp-for="Date" class="form-control"
+                        value="@(Model?.Date.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd"))" />
                 </div>
                 @Html.ValidationMessageFor(x => x.Date, null, new { @class = "text-danger d-block ms-5" })
 
@@ -143,7 +188,7 @@
                     </div>
                     <select asp-for="Category" class="form-select">
                         <option value="">Selecione a Categoria</option>
-                        @foreach (var catg in Enum.GetValues(typeof(ExpenseCategory)).Cast<ExpenseCategory>())
+                        @foreach (var catg in Enum.GetValues(typeof(IncomeCategory)).Cast<IncomeCategory>())
                         {
                             <option value="@catg">@catg.ToString()</option>
                         }
@@ -190,23 +235,23 @@
 
                 <hr class="my-3 border-bottom-custom" />
 
-                @* Seção "Foi paga" (bool) *@
+                @* Seção "Foi Recebida" (bool) *@
                 <div class="mb-3 input-icon-wrapper">
                     <div class="icon-circle">
                         <i class="bi bi-check-circle"></i> @* Ícone de Checkmark *@
                     </div>
-                    <select asp-for="IsPaid" class="form-select">
-                        <option value="true">Pago</option>
+                    <select asp-for="IsReceived" class="form-select">
                         <option value="false">Pendente</option>
+                        <option value="true">Recebido</option>
                     </select>
                 </div>
-                @Html.ValidationMessageFor(x => x.IsPaid)
+                @Html.ValidationMessageFor(x => x.IsReceived)
 
                 <hr class="my-3 border-bottom-custom" />
 
                 @* Botões de Ação *@
                 <div class="d-flex justify-content-end gap-2 pt-3 border-top border-bottom-custom mt-3">
-                    <a class="btn btn-secondary" role="button" asp-controller="Transaction" asp-action="Index">Voltar</a>
+                    <a class="btn btn-secondary" role="button" asp-action="Index">Voltar</a>
                     <button type="submit" class="btn btn-primary">Salvar</button>
                 </div>
             </form>
@@ -215,8 +260,10 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
     <script>
-    
+        
     </script>
 }

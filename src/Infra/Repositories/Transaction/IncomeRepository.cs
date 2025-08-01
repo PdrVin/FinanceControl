@@ -24,7 +24,6 @@ public class IncomeRepository : Repository<Income>, IIncomeRepository
     {
         return await Entities
             .Include(i => i.BankAccount)
-            .AsNoTracking()
             .FirstOrDefaultAsync(i => i.Id == id)
             ?? throw new KeyNotFoundException($"Income with id {id} not found");
     }

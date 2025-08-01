@@ -41,20 +41,20 @@ public class TransactionService : ITransactionService
         allTransactions.AddRange(incomes.Select(r => new TransactionDto
         {
             Id = r.Id,
-            Type = "Receita",
+            Type = "Income",
             Status = r.IsReceived,
             Date = r.Date,
             Description = r.Description,
             CategoryName = r.Category.ToString(),
             AccountName = r.BankAccount!.Name,
             Amount = r.Amount,
-            RelatedAccountId = r.BankAccountId
+            RelatedAccountId = r.BankAccountId,
         }));
 
         allTransactions.AddRange(expenses.Select(e => new TransactionDto
         {
             Id = e.Id,
-            Type = "Despesa",
+            Type = "Expense",
             Status = e.IsPaid,
             Date = e.Date,
             Description = e.Description,
@@ -67,7 +67,7 @@ public class TransactionService : ITransactionService
         allTransactions.AddRange(transfers.Select(t => new TransactionDto
         {
             Id = t.Id,
-            Type = "Transferencia",
+            Type = "Transfer",
             Status = true,
             Date = t.Date,
             Description = null,
@@ -80,9 +80,9 @@ public class TransactionService : ITransactionService
         allTransactions.AddRange(cardExpenses.Select(cce => new TransactionDto
         {
             Id = cce.Id,
-            Type = "Cartao",
+            Type = "CardExpense",
             Status = false,
-            Date = cce.Date,
+            Date = cce.Invoice.DueDate,
             Description = cce.Description,
             CategoryName = cce.Category.ToString(),
             AccountName = cce.CreditCard!.Name,
@@ -92,8 +92,10 @@ public class TransactionService : ITransactionService
 
         allTransactions = allTransactions.OrderByDescending(t => t.Date).ToList();
 
-        var totalIncomes = allTransactions.Where(t => t.Type == "Receita").Sum(t => t.Amount);
-        var totalExpenses = allTransactions.Where(t => t.Type == "Despesa" || t.Type == "Cartao").Sum(t => t.Amount);
+        var totalIncomes = allTransactions
+            .Where(t => t.Type == "Income").Sum(t => t.Amount);
+        var totalExpenses = allTransactions
+            .Where(t => t.Type == "Expense" || t.Type == "CardExpense").Sum(t => t.Amount);
         var monthlyBalance = totalIncomes + totalExpenses;
 
         var allBankAccounts = await _bankAccountRepository.GetAllBankAccountsAsync();

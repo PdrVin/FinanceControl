@@ -98,14 +98,11 @@ public class ExpenseService : Service<ExpenseRequest, ExpenseResponse, Expense>,
     public async Task DeleteExpenseAsync(Guid id)
     {
         // Lógica de negócio: Reverter o saldo da conta antes de deletar
-        var existingExpense = await _expenseRepository.GetByIdAsync(id)
+        var expense = await _expenseRepository.GetExpenseByIdAsync(id)
             ?? throw new KeyNotFoundException($"Expense with id {id} not found.");
 
-        var bankAccount = await _bankAccountRepository.GetByIdAsync(existingExpense.BankAccountId)
-            ?? throw new KeyNotFoundException($"Bank account with id {existingExpense.BankAccountId} not found.");
-
-        bankAccount.CurrentBalance += existingExpense.Amount;
-        _bankAccountRepository.Update(bankAccount);
+        expense.BankAccount.CurrentBalance += expense.Amount;
+        _bankAccountRepository.Update(expense.BankAccount);
 
         _expenseRepository.Delete(id);
         await _unitOfWork.CommitAsync();
